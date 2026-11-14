@@ -1,0 +1,71 @@
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { defineConfig, globalIgnores } from "eslint/config";
+import { jsdoc } from "eslint-plugin-jsdoc";
+import node from "eslint-plugin-n";
+import deslint from "@deslint/eslint-plugin";
+import deMorgan from "eslint-plugin-de-morgan";
+import sonarjs from "eslint-plugin-sonarjs";
+import security from "eslint-plugin-security";
+import regexp from "eslint-plugin-regexp";
+import promise from "eslint-plugin-promise";
+import perfectionist from "eslint-plugin-perfectionist";
+import vitest from "@vitest/eslint-plugin";
+import prettier from "eslint-config-prettier/flat";
+
+const JS_FILES = "**/*.{js,mjs,cjs}";
+const TS_FILES = "**/*.{ts,mts,cts}";
+
+export default defineConfig([
+  globalIgnores([
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "docs/**",
+    "*.config.*",
+    // Test fixtures intentionally contain broken/undocumented sample code —
+    // they are inputs for the CLI, never project source.
+    "test/fixtures/**",
+    // Inert `export {}` stubs from a previous test-layout migration; the
+    // sandbox cannot delete them, so exclude them instead.
+    "test/*.test.ts",
+  ]),
+  {
+    files: [JS_FILES, TS_FILES],
+    plugins: { js, n: node },
+    extends: [
+      "js/recommended",
+      "n/recommended-module",
+      deslint.configs.recommended,
+      deMorgan.configs.recommended,
+      sonarjs.configs.recommended,
+      security.configs.recommended,
+      regexp.configs.recommended,
+      promise.configs["flat/recommended"],
+      perfectionist.configs["recommended-natural"],
+    ],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: [TS_FILES],
+    extends: [
+      tseslint.configs.recommended,
+      jsdoc({ config: "flat/recommended-tsdoc" }),
+    ],
+  },
+  {
+    files: [JS_FILES],
+    extends: [jsdoc({ config: "flat/recommended" })],
+  },
+  {
+    files: ["{test,src}/**/*.*{test,spec}.{ts,js}"],
+    extends: [vitest.configs.recommended],
+  },
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+  prettier,
+]);

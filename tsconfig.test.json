@@ -1,0 +1,13 @@
+{
+  // Check build: typechecks src/ (including the colocated unit tests) and
+  // test/ together with noEmit. This is what `npm run typecheck` uses; the
+  // real emit build is `tsc -p tsconfig.json` (src/ only, tests excluded).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src", "test"]
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.test-dist/
+docs/
+*.tgz
+*.tsbuildinfo
+
+# eslint cache
+.eslintcache
+coverage/

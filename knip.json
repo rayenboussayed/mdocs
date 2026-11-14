@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": [
+    "-lintignore"
+  ],
+  "entry": [
+    "test/bench/**/*.ts"
+  ],
+  "ignore": [
+    "test/*.test.ts",
+    "test/fixtures/**"
+  ]
+}
