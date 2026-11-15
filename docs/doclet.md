@@ -159,8 +159,8 @@ Normalizes dmd input doclets in place.
 | --- | --- | --- |
 | data | <code>DmdDoclet[]</code> | The doclets to normalize (mutated in place). |
 
-src: src/doclet.ts:146  
-dist: dist/doclet.js:105
+src: src/doclet.ts:147  
+dist: dist/doclet.js:106
 <a name="extractLookupKeys"></a>
 
 ## extractLookupKeys(doclet) ⇒ <code>SymbolLookup</code>
@@ -173,8 +173,8 @@ Extracts the qualified (`Class.member`) and plain lookup keys for a doclet.
 | --- | --- | --- |
 | doclet | <code>DmdDoclet</code> | The doclet to name. |
 
-src: src/doclet.ts:163  
-dist: dist/doclet.js:121
+src: src/doclet.ts:164  
+dist: dist/doclet.js:122
 <a name="memberofBase"></a>
 
 ## memberofBase(memberof) ⇒ <code>string</code>
@@ -187,8 +187,8 @@ Extracts the class base from a jsdoc `memberof` value (`module:f.Point` → `Poi
 | --- | --- | --- |
 | memberof | <code>string</code> | The raw `memberof` value. |
 
-src: src/doclet.ts:184  
-dist: dist/doclet.js:142
+src: src/doclet.ts:185  
+dist: dist/doclet.js:143
 <a name="upgradeReturnType"></a>
 
 ## upgradeReturnType(doclet, info)
@@ -201,5 +201,5 @@ Upgrades (or adds) the doclet's `@returns` entry from the checker type.
 | doclet | <code>DmdDoclet</code> | The doclet whose `returns` are upgraded (mutated in place). |
 | info | <code>SymbolType</code> | The extracted signature for the doclet's symbol. |
 
-src: src/doclet.ts:196  
-dist: dist/doclet.js:154
+src: src/doclet.ts:197  
+dist: dist/doclet.js:155

@@ -8,7 +8,7 @@ import { join, sep } from 'node:path'
 import { expect, onTestFinished, test } from 'vitest'
 
 import { resolveConfig } from './config.js'
-import { collectSourceFiles, outputPathFor, resolveProjects } from './resolve.js'
+import { collectSourceFiles, outputPathFor, probeMissingDistDirs, resolveProjects } from './resolve.js'
 import { expectMdocsError, mkdirp, writeUtf8 } from './test-utils.js'
 
 const fixtures = join(process.cwd(), 'test', 'fixtures')
@@ -23,6 +23,21 @@ async function tmpCopy(src: string): Promise<string> {
   await cp(src, join(dir, 'proj'), { recursive: true })
   return join(dir, 'proj')
 }
+
+test('probeMissingDistDirs: flags missing dirs, existing dirs and dirs that are files', async () => {
+  const dir = await tmpCopy(join(fixtures, 'regular-repo-ts'))
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+  const projects = await resolveProjects(resolveConfig({}), dir)
+  await rm(join(dir, 'dist'), { force: true, recursive: true })
+  expect([...(await probeMissingDistDirs(projects))]).toEqual([join(dir, 'dist')])
+
+  await mkdirp(join(dir, 'dist'))
+  expect([...(await probeMissingDistDirs(projects))]).toEqual([])
+
+  await rm(join(dir, 'dist'), { force: true, recursive: true })
+  await writeUtf8(join(dir, 'dist'), 'not a directory')
+  expect([...(await probeMissingDistDirs(projects))]).toEqual([join(dir, 'dist')])
+})
 
 test('resolveProjects: literal src dir resolves to sibling dist/docs', async () => {
   const dir = await tmpCopy(join(fixtures, 'regular-repo-ts'))

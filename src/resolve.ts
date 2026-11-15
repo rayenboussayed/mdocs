@@ -110,6 +110,30 @@ export function outputPathFor(file: SourceFile): string {
 }
 
 /**
+ * Probes each project's dist folder exactly once. Missing or non-directory
+ * dist folders are returned so the run can omit dist pointers and warn.
+ * @param projects - The resolved projects to probe.
+ * @returns The absolute distDirs that are absent or not directories.
+ */
+export async function probeMissingDistDirs(projects: readonly ProjectRoot[]): Promise<Set<string>> {
+  const missing = new Set<string>()
+  for (const project of projects) {
+    try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename -- path derived from the validated config; no untrusted path
+      const stats = await stat(project.distDir)
+      if (!stats.isDirectory()) missing.add(project.distDir)
+    } catch {
+      missing.add(project.distDir)
+    }
+  }
+  return missing
+}
+
+// ---------------------------------------------------------------------------
+// internals
+// ---------------------------------------------------------------------------
+
+/**
  * Expands `config.rootSrcDir` to concrete `ProjectRoot`s.
  * @param config - The resolved config (roots and output directory names).
  * @param cwd - Base directory for relative entries and glob expansion.
@@ -150,10 +174,6 @@ export async function resolveProjects(config: ResolvedMdocsConfig, cwd: string):
     srcDir,
   }))
 }
-
-// ---------------------------------------------------------------------------
-// internals
-// ---------------------------------------------------------------------------
 
 /**
  * Fails the whole run when two files in one project would write the same

@@ -31,6 +31,15 @@ test('normalizeDoclets: leaves data without self-references untouched', () => {
   expect(data[0]?.memberof).toBeUndefined()
 })
 
+test('injectPointers: a dist-less pointer attaches src only (no dist key)', () => {
+  const data: DmdDoclet[] = [
+    { kind: 'function', meta: { filename: 'file.js', lineno: 10, path: '/scratch/0' }, name: 'add' },
+  ]
+  const pointers = new Map([[10, { src: '/abs/src/math.ts:9' }]])
+  injectPointers(data, pointers)
+  expect(data[0]?.mdocs).toEqual({ src: '/abs/src/math.ts:9' })
+})
+
 test('injectPointers: mdocs fields are attached by generated line', () => {
   const data: DmdDoclet[] = [
     { kind: 'function', meta: { filename: 'file.js', lineno: 10, path: '/scratch/0' }, name: 'add' },

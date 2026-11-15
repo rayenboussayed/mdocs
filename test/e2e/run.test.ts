@@ -97,17 +97,51 @@ test('monorepo: a glob that matches nothing fails with the pattern', async () =>
   expect(error.code).toBe('NO_ROOTS')
 })
 
-test('no-dist: docs are still generated; dist line is marked approximate', async () => {
+test('no-dist: docs are still generated; dist line omitted, warning and issue recorded', async () => {
   const dir = await projectCopy('no-dist')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
   const result = await run({ cwd: dir })
   expect(result.failed).toHaveLength(0)
   expect(result.written).toHaveLength(1)
+  expect(result.warnings).toHaveLength(1)
+  expect(result.warnings[0]).toMatch(/dist folder not found/i)
 
   const md = await readUtf8(join(dir, 'docs', 'lone.md'))
   expect(md).toMatch(/src: .*lone\.ts:8/)
-  expect(md).toMatch(/dist: .*dist[\\/]lone\.js \(approx\.\)|dist: .*dist[\\/]lone\.js:\d+ \(approx\.\)/)
+  expect(md).not.toMatch(/^dist: /m)
+  expect(result.issues.filter((issue) => issue.issue.includes('dist folder not found'))).toHaveLength(1)
+})
+
+test('dist folder present but the dist file missing suppresses only that file', async () => {
+  const dir = await projectCopy('regular-repo-js')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+  await rm(join(dir, 'dist', 'index.js'), { force: true })
+
+  const result = await run({ cwd: dir })
+  expect(result.failed).toHaveLength(0)
+
+  const md = await readUtf8(join(dir, 'docs', 'index.md'))
+  expect(md).toMatch(/src: .*index\.js:9/)
+  expect(md).not.toMatch(/^dist: /m)
+  expect(result.warnings).toEqual([])
+  expect(result.issues.filter((issue) => issue.issue.includes('dist file not found'))).toHaveLength(1)
+})
+
+test('monorepo: a package without dist loses dist lines, the other keeps them', async () => {
+  const dir = await projectCopy('monorepo')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+  await rm(join(dir, 'packages', 'beta', 'dist'), { force: true, recursive: true })
+
+  const result = await run({ cwd: dir, rootSrcDir: ['packages/*/src'] })
+  expect(result.failed).toHaveLength(0)
+
+  const alpha = await readUtf8(join(dir, 'packages', 'alpha', 'docs', 'alpha.md'))
+  const beta = await readUtf8(join(dir, 'packages', 'beta', 'docs', 'beta.md'))
+  expect(alpha).toMatch(/dist: .*alpha\.js:6/)
+  expect(beta).not.toMatch(/^dist: /m)
+  expect(result.warnings).toHaveLength(1)
+  expect(result.warnings[0]).toMatch(/beta/)
 })
 
 test('dry-run plans the writes without writing anything', async () => {
@@ -116,6 +150,7 @@ test('dry-run plans the writes without writing anything', async () => {
 
   const result = await run({ cwd: dir, dryRun: true })
   expect(result.dryRun).toBe(true)
+  expect(result.warnings).toEqual([])
   expect(result.written).toHaveLength(3) // plan includes broken.ts
   expect(result.written.every((w) => w.to.endsWith('.md'))).toBe(true)
   await expect(readUtf8(join(dir, 'docs', 'math.md'))).rejects.toThrow(/ENOENT/)

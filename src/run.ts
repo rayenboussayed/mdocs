@@ -17,7 +17,7 @@ import { loadConfig, type MdocsConfig } from './config.js'
 import { errorMessage } from './errors.js'
 import { mapPool } from './pool.js'
 import { renderSourceFile, writeTemplatePartials } from './render.js'
-import { collectSourceFiles, isTypeScriptExtension, outputPathFor, resolveProjects, type SourceFile } from './resolve.js'
+import { collectSourceFiles, isTypeScriptExtension, outputPathFor, probeMissingDistDirs, resolveProjects, type SourceFile } from './resolve.js'
 import { withScratch } from './scratch.js'
 import { createTypeProgram } from './tscheck.js'
 
@@ -55,6 +55,8 @@ export interface RunResult {
   projects: ProjectSummary[]
   /** Files intentionally skipped (no JSDoc). */
   skipped: string[]
+  /** Non-fatal run-level warnings (e.g. a missing dist folder) — the CLI prints these on stderr. */
+  warnings: string[]
   /** Files rendered (absolute `.md` output paths) — or the plan in dry-run. */
   written: Array<{ from: string; symbols: number; to: string; }>
 }
@@ -98,8 +100,18 @@ export async function run(options: RunOptions = {}): Promise<RunResult> {
       issues: collectionIssues.map((issue) => ({ file: '(collect)', issue })),
       projects: projectSummaries,
       skipped: [],
+      warnings: [],
       written: planned,
     }
+  }
+
+  // Probe each project's dist folder once — a missing folder means the dist
+  // pointer is omitted everywhere in that project (with a single warning).
+  const missingDistDirs = await probeMissingDistDirs(projects)
+  const distWarnings: string[] = []
+  for (const project of projects) {
+    if (!missingDistDirs.has(project.distDir)) continue
+    distWarnings.push(`dist folder not found: ${project.distDir} — build first; dist: pointers omitted for the project`)
   }
 
   return withScratch(async (scratch) => {
@@ -113,7 +125,7 @@ export async function run(options: RunOptions = {}): Promise<RunResult> {
         const result = await renderSourceFile(
           { file, index },
           // Pointers are rendered relative to the run's cwd (the workspace root).
-          { outPath, partials, pointerBase: cwd, scratchDir: scratch.dir, typeProgram },
+          { missingDistDirs, outPath, partials, pointerBase: cwd, scratchDir: scratch.dir, typeProgram },
         )
         // Render and persist in one task: the write overlaps with the other
         // workers instead of serializing after the pool drains.
@@ -143,7 +155,11 @@ export async function run(options: RunOptions = {}): Promise<RunResult> {
     const written: RunResult['written'] = []
     const skipped: string[] = []
     const failed: RunResult['failed'] = []
-    const issues: RunResult['issues'] = collectionIssues.map((issue) => ({ file: '(collect)', issue }))
+    const issues: RunResult['issues'] = [
+      ...collectionIssues.map((issue) => ({ file: '(collect)', issue })),
+      // One entry per missing project folder, mirroring the run-level warning.
+      ...distWarnings.map((issue) => ({ file: '(dist)', issue })),
+    ]
 
     for (const result of results) {
       for (const issue of result.issues) issues.push({ file: result.file.absPath, issue })
@@ -168,6 +184,7 @@ export async function run(options: RunOptions = {}): Promise<RunResult> {
       issues,
       projects: projectSummaries,
       skipped,
+      warnings: distWarnings,
       written,
     }
   })

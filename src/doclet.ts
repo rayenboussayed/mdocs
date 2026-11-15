@@ -22,8 +22,8 @@ export interface DmdDoclet {
   id?: string
   kind?: string
   longname?: string
-  /** Injected by mdocs: absolute `src` / `dist` pointers for the heading. */
-  mdocs?: { dist: string; src: string; }
+  /** Injected by mdocs: `src` pointer, plus the `dist` pointer when a usable dist build exists. */
+  mdocs?: { dist?: string; src: string; }
   memberof?: string
   meta?: {
     [field: string]: unknown
@@ -48,8 +48,8 @@ export interface DmdDoclet {
 
 /** The line pointers computed for one documented symbol. */
 export interface SymbolPointer {
-  /** `<cwd-relative dist>/file.js:10` or `/abs/path/dist/file.js` + ` (approx.)` when the line is unknown. */
-  dist: string
+  /** `<cwd-relative dist>/file.js:10` or ` (approx.)` when the line is unknown — absent when the dist pointer is omitted (no usable dist build). */
+  dist?: string
   /** `src/file.ts:19` or with ` (approx.)` suffix. */
   src: string
 }
@@ -123,7 +123,8 @@ export function injectPointers(doclets: readonly DmdDoclet[], pointers: Readonly
     const line = doclet.meta?.lineno
     if (line === undefined) continue
     const pointer = pointers.get(line)
-    if (pointer !== undefined) doclet.mdocs = { dist: pointer.dist, src: pointer.src }
+    if (pointer === undefined) continue
+    doclet.mdocs = pointer.dist === undefined ? { src: pointer.src } : { dist: pointer.dist, src: pointer.src }
   }
 }
 

@@ -26,6 +26,10 @@ error, not something to silently overwrite.</p>
 Contained by construction — <code>relPath</code> comes from <code>walkFiles(project.srcDir)</code>,
 so it is relative with no <code>..</code> ascent.</p>
 </dd>
+<dt><a href="#probeMissingDistDirs">probeMissingDistDirs(projects)</a> ⇒ <code>Promise&lt;Set&lt;string&gt;&gt;</code></dt>
+<dd><p>Probes each project&#39;s dist folder exactly once. Missing or non-directory
+dist folders are returned so the run can omit dist pointers and warn.</p>
+</dd>
 <dt><a href="#resolveProjects">resolveProjects(config, cwd)</a> ⇒ <code>Promise&lt;ProjectRoot[]&gt;</code></dt>
 <dd><p>Expands <code>config.rootSrcDir</code> to concrete <code>ProjectRoot</code>s.</p>
 </dd>
@@ -117,6 +121,21 @@ so it is relative with no `..` ascent.
 
 src: src/resolve.ts:107  
 dist: dist/resolve.js:73
+<a name="probeMissingDistDirs"></a>
+
+## probeMissingDistDirs(projects) ⇒ <code>Promise&lt;Set&lt;string&gt;&gt;</code>
+Probes each project's dist folder exactly once. Missing or non-directory
+dist folders are returned so the run can omit dist pointers and warn.
+
+**Kind**: global function  
+**Returns**: <code>Promise&lt;Set&lt;string&gt;&gt;</code> - The absolute distDirs that are absent or not directories.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| projects | <code>readonly ProjectRoot[]</code> | The resolved projects to probe. |
+
+src: src/resolve.ts:118  
+dist: dist/resolve.js:83
 <a name="resolveProjects"></a>
 
 ## resolveProjects(config, cwd) ⇒ <code>Promise&lt;ProjectRoot[]&gt;</code>
@@ -136,8 +155,8 @@ Expands `config.rootSrcDir` to concrete `ProjectRoot`s.
 | config | <code>ResolvedMdocsConfig</code> | The resolved config (roots and output directory names). |
 | cwd | <code>string</code> | Base directory for relative entries and glob expansion. |
 
-src: src/resolve.ts:121  
-dist: dist/resolve.js:86
+src: src/resolve.ts:145  
+dist: dist/resolve.js:110
 <a name="assertNoOutputCollisions"></a>
 
 ## assertNoOutputCollisions(files)
@@ -150,8 +169,8 @@ Fails the whole run when two files in one project would write the same
 | --- | --- | --- |
 | files | <code>readonly SourceFile[]</code> | The collected files to check for colliding outputs. |
 
-src: src/resolve.ts:163  
-dist: dist/resolve.js:125
+src: src/resolve.ts:183  
+dist: dist/resolve.js:146
 <a name="assertNoOverlappingRoots"></a>
 
 ## assertNoOverlappingRoots(roots)
@@ -163,8 +182,8 @@ Rejects roots where one src directory is nested inside another.
 | --- | --- | --- |
 | roots | <code>readonly string[]</code> | The resolved source directories to validate. |
 
-src: src/resolve.ts:183  
-dist: dist/resolve.js:146
+src: src/resolve.ts:203  
+dist: dist/resolve.js:167
 <a name="expandGlob"></a>
 
 ## expandGlob(pattern, cwd) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -180,8 +199,8 @@ matches nothing at all.
 | pattern | <code>string</code> | The glob pattern to expand (against `cwd`). |
 | cwd | <code>string</code> | Base directory for relative patterns. |
 
-src: src/resolve.ts:209  
-dist: dist/resolve.js:168
+src: src/resolve.ts:229  
+dist: dist/resolve.js:189
 <a name="isSourceExtension"></a>
 
 ## isSourceExtension(extension) ⇒ <code>boolean</code>
@@ -194,8 +213,8 @@ Narrows a raw extension to `SourceExtension`.
 | --- | --- | --- |
 | extension | <code>string</code> | The raw extension to test. |
 
-src: src/resolve.ts:241  
-dist: dist/resolve.js:200
+src: src/resolve.ts:261  
+dist: dist/resolve.js:221
 <a name="lowerExtension"></a>
 
 ## lowerExtension(absPath) ⇒ <code>string</code>
@@ -208,8 +227,8 @@ Lower-cased file extension including the dot.
 | --- | --- | --- |
 | absPath | <code>string</code> | Absolute path of the file. |
 
-src: src/resolve.ts:250  
-dist: dist/resolve.js:208
+src: src/resolve.ts:270  
+dist: dist/resolve.js:229
 <a name="requireDirectory"></a>
 
 ## requireDirectory(path) ⇒ <code>Promise&lt;string&gt;</code>
@@ -222,8 +241,8 @@ Stats `path`, requiring an existing directory; returns its realpath.
 | --- | --- | --- |
 | path | <code>string</code> | The path to check. |
 
-src: src/resolve.ts:261  
-dist: dist/resolve.js:218
+src: src/resolve.ts:281  
+dist: dist/resolve.js:239
 <a name="toPosix"></a>
 
 ## toPosix(path) ⇒ <code>string</code>
@@ -236,8 +255,8 @@ POSIX-style relative path (forward slashes).
 | --- | --- | --- |
 | path | <code>string</code> | The path to normalize. |
 
-src: src/resolve.ts:286  
-dist: dist/resolve.js:244
+src: src/resolve.ts:306  
+dist: dist/resolve.js:265
 <a name="walkFiles"></a>
 
 ## walkFiles(dir, issues) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -251,5 +270,5 @@ Recursively lists files under `dir`, never following directory symlinks.
 | dir | <code>string</code> | The directory to walk. |
 | issues | <code>string[]</code> | Per-run notes accumulator (unreadable directories). |
 
-src: src/resolve.ts:296  
-dist: dist/resolve.js:253
+src: src/resolve.ts:316  
+dist: dist/resolve.js:274

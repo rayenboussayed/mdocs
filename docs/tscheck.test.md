@@ -14,4 +14,3 @@ Looks up `name` (optionally qualified) in `file` of the shared program.
 | qualified | <code>string</code> | The qualified lookup key (overrides the plain one). |
 
 src: src/tscheck.test.ts:23  
-dist: dist/tscheck.test.js:20 (approx.)

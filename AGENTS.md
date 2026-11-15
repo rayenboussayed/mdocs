@@ -38,7 +38,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - Unreachable-by-design code is allowed but must carry a justified `/* v8 ignore ... */` comment; never weaken the 100% thresholds in `vitest.config.ts`.
 - `console.warn` is swallowed only inside the dmd render section, which is serialized through a promise gate (`withWarnSunk`) — pool workers must not race the patch. Other dmd warnings (`getTemplateData`) are NOT sunk.
 - `run()` deletes `JSDOC_PATH` from `process.env`; env access goes through `parseProcessEnv` only (invalid values silently fall back to defaults — `NODE_ENV` selects the function-form config's `mode`, `MDOCS_DEBUG=1` enables stack traces, `NO_COLOR` is accepted but unused).
-- `dist:` pointers are exact only when the committed `.js.map` matches the source; otherwise `(approx.)`. Sibling `.map` reads are capped at 16 MB; inline maps are read from the last 64 KB only.
+- `dist:` pointers are exact only when the committed `.js.map` matches the source; otherwise `(approx.)` — except when the dist file itself is missing, in which case the `dist:` line is omitted (one per-file note), and when the whole dist folder is missing, in which case every project emits no `dist:` lines (one stderr warning + one `(dist)` issue per project). Sibling `.map` reads are capped at 16 MB; inline maps are read from the last 64 KB only.
 - tsconfig is stricter than defaults: `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noUnusedLocals/Parameters`, `verbatimModuleSyntax`, `nodenext`.
 - Config load errors are wrapped in `CONFIG_LOAD_FAILED` in `loadConfig` (one choke point); loader details live in `importConfigModule`/`importEsmInCommonJsPackage`.
 

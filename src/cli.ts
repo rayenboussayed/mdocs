@@ -131,6 +131,7 @@ function parseParallelism(value: string): boolean | number {
  * @param verbose - When set, already printed in `printVerbose`; controls the dry-run listing.
  */
 function printSummary(result: RunResult, verbose: boolean): void {
+  for (const warning of result.warnings) console.error(`mdocs: warning: ${warning}`)
   const { failed, skipped, written } = result
   const seconds = (result.durationMs / 1000).toFixed(2)
   if (result.dryRun) {

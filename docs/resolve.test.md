@@ -9,4 +9,3 @@
 | src | <code>string</code> | The fixture repo name to copy. |
 
 src: src/resolve.test.ts:21  
-dist: dist/resolve.test.js:18 (approx.)

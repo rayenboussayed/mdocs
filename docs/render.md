@@ -18,7 +18,7 @@
 <dt><a href="#writeTemplatePartials">writeTemplatePartials(scratchDir)</a> ⇒ <code>Promise&lt;string[]&gt;</code></dt>
 <dd><p>Writes the two injected partials into the run&#39;s scratch directory.</p>
 </dd>
-<dt><a href="#computePointers">computePointers(file, data, transpileMapper, issues, pointerBase)</a> ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code></dt>
+<dt><a href="#computePointers">computePointers(file, data, transpileMapper, issues, pointerBase, distFolderMissing)</a> ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code></dt>
 <dd><p>Computes the per-doclet src/dist pointer map, keyed by generated line</p>
 </dd>
 <dt><a href="#pointerPath">pointerPath(base, absPath)</a> ⇒ <code>string</code></dt>
@@ -28,9 +28,10 @@
 <dd><p>Transpiles (.ts family) or copies (.js family) the source for jsdoc.</p>
 </dd>
 <dt><a href="#resolveDistPointer">resolveDistPointer(srcLine, transpileMapper, dist, issues)</a> ⇒ <code>string</code></dt>
-<dd><p>Computes the dist pointer for one doclet. When the dist map exists but the
-lookup misses, one &quot;dist sourcemap missing or unmatched&quot; note is recorded
-(the no-map/no-dist cases already got their own single note).</p>
+<dd><p>Computes the dist pointer for one doclet. A missing dist folder (project probe)
+or dist file (per-file probe) omits the dist line entirely; when the dist map
+exists but the lookup misses, one &quot;dist sourcemap missing or unmatched&quot; note is
+recorded instead.</p>
 </dd>
 <dt><a href="#resolveSrcLine">resolveSrcLine(generatedLine, transpileMapper)</a> ⇒ <code>{ srcApprox: boolean; srcLine: number; }</code></dt>
 <dd><p>Maps a doclet&#39;s generated line back to the original source line.</p>
@@ -67,8 +68,8 @@ dist: dist/render.js:40
 Dist extensions that differ from `source.slice(1)` (everything else strips the dot).
 
 **Kind**: global constant  
-src: src/render.ts:354  
-dist: dist/render.js:280
+src: src/render.ts:362  
+dist: dist/render.js:287
 <a name="renderSourceFile"></a>
 
 ## renderSourceFile(job, deps) ⇒ <code>Promise&lt;RenderFileResult&gt;</code>
@@ -80,7 +81,8 @@ Renders one source file into markdown (or reports why it could not).
 | Param | Type | Description |
 | --- | --- | --- |
 | job | <code>RenderFileJob</code> | The file to render and its pool index. |
-| deps | <code>{ outPath: string; partials: readonly string[]; pointerBase: string; scratchDir: string; timeoutMs?: number; typeProgram: null \| TypeProgram; }</code> | Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout). |
+| deps | <code>{ missingDistDirs?: ReadonlySet&lt;string&gt;; outPath: string; partials: readonly string[]; pointerBase: string; scratchDir: string; timeoutMs?: number; typeProgram: null \| TypeProgram; }</code> | Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout). |
+| deps.missingDistDirs |  | Absolute distDirs known to be missing/not-directories (probed once per project by the run); for those projects no `dist:` line is emitted. |
 | deps.scratchDir |  | Per-file scratch directory for the transpiled/copied source. |
 | deps.partials |  | The handlebars partial override files (dmd template). |
 | deps.outPath |  | Where the generated markdown goes. |
@@ -88,8 +90,8 @@ Renders one source file into markdown (or reports why it could not).
 | deps.pointerBase |  | Absolute base for cwd-relative `src:`/`dist:` pointers. |
 | deps.timeoutMs |  | jsdoc render timeout in milliseconds. |
 
-src: src/render.ts:97  
-dist: dist/render.js:63
+src: src/render.ts:98  
+dist: dist/render.js:64
 <a name="writeTemplatePartials"></a>
 
 ## writeTemplatePartials(scratchDir) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -102,26 +104,27 @@ Writes the two injected partials into the run's scratch directory.
 | --- | --- | --- |
 | scratchDir | <code>string</code> | Scratch directory that will hold `partials/`. |
 
-src: src/render.ts:194  
-dist: dist/render.js:134
+src: src/render.ts:197  
+dist: dist/render.js:135
 <a name="computePointers"></a>
 
-## computePointers(file, data, transpileMapper, issues, pointerBase) ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code>
+## computePointers(file, data, transpileMapper, issues, pointerBase, distFolderMissing) ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code>
 Computes the per-doclet src/dist pointer map, keyed by generated line
 
 **Kind**: global function  
 **Returns**: <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code> - A generated-line → pointer map.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| file | <code>SourceFile</code> | The source file being rendered. |
-| data | <code>readonly DmdDoclet[]</code> | The doclets to annotate (already normalized). |
-| transpileMapper | <code>SourceLineMapper</code> | Mapper from the in-memory transpile, or `null` for pass-through copies. |
-| issues | <code>string[]</code> | Per-file notes accumulator. |
-| pointerBase | <code>string</code> | Absolute base for cwd-relative `src:`/`dist:` pointers. |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| file | <code>SourceFile</code> |  | The source file being rendered. |
+| data | <code>readonly DmdDoclet[]</code> |  | The doclets to annotate (already normalized). |
+| transpileMapper | <code>SourceLineMapper</code> |  | Mapper from the in-memory transpile, or `null` for pass-through copies. |
+| issues | <code>string[]</code> |  | Per-file notes accumulator. |
+| pointerBase | <code>string</code> |  | Absolute base for cwd-relative `src:`/`dist:` pointers. |
+| distFolderMissing | <code>boolean</code> | <code>false</code> | `true` when the project's dist folder was probed missing; the dist lookup is skipped entirely. |
 
-src: src/render.ts:215  
-dist: dist/render.js:154
+src: src/render.ts:219  
+dist: dist/render.js:156
 <a name="pointerPath"></a>
 
 ## pointerPath(base, absPath) ⇒ <code>string</code>
@@ -135,8 +138,8 @@ Renders an absolute path relative to the workspace root, posix-style.
 | base | <code>string</code> | The absolute base the returned path is relative to. |
 | absPath | <code>string</code> | The absolute path to render. |
 
-src: src/render.ts:247  
-dist: dist/render.js:179
+src: src/render.ts:252  
+dist: dist/render.js:181
 <a name="prepareForJsdoc"></a>
 
 ## prepareForJsdoc(file, srcText, scratchDir) ⇒ <code>Promise&lt;PreparedFile&gt;</code>
@@ -151,17 +154,18 @@ Transpiles (.ts family) or copies (.js family) the source for jsdoc.
 | srcText | <code>string</code> | The source text. |
 | scratchDir | <code>string</code> | Per-file scratch directory to write into. |
 
-src: src/render.ts:258  
-dist: dist/render.js:189
+src: src/render.ts:263  
+dist: dist/render.js:191
 <a name="resolveDistPointer"></a>
 
 ## resolveDistPointer(srcLine, transpileMapper, dist, issues) ⇒ <code>string</code>
-Computes the dist pointer for one doclet. When the dist map exists but the
-lookup misses, one "dist sourcemap missing or unmatched" note is recorded
-(the no-map/no-dist cases already got their own single note).
+Computes the dist pointer for one doclet. A missing dist folder (project probe)
+or dist file (per-file probe) omits the dist line entirely; when the dist map
+exists but the lookup misses, one "dist sourcemap missing or unmatched" note is
+recorded instead.
 
 **Kind**: global function  
-**Returns**: <code>string</code> - The `dist:` pointer line.  
+**Returns**: <code>string</code> - The `dist:` pointer line, or `undefined` when the dist line must be omitted.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -170,8 +174,8 @@ lookup misses, one "dist sourcemap missing or unmatched" note is recorded
 | dist | <code>DistPointerContext</code> | Dist lookup context (kind, mapper, pointer path) computed once per file. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:324  
-dist: dist/render.js:256
+src: src/render.ts:330  
+dist: dist/render.js:259
 <a name="resolveSrcLine"></a>
 
 ## resolveSrcLine(generatedLine, transpileMapper) ⇒ <code>{ srcApprox: boolean; srcLine: number; }</code>
@@ -185,8 +189,8 @@ Maps a doclet's generated line back to the original source line.
 | generatedLine | <code>number</code> | The jsdoc-reported line in the generated file. |
 | transpileMapper | <code>SourceLineMapper</code> | Mapper from the transpile emit, or `null` for pass-through copies. |
 
-src: src/render.ts:343  
-dist: dist/render.js:271
+src: src/render.ts:351  
+dist: dist/render.js:278
 <a name="distJsPathFor"></a>
 
 ## distJsPathFor(file) ⇒ <code>string</code>
@@ -199,8 +203,8 @@ dist `.js` path for a source file: sibling rootDistDir, same relative path.
 | --- | --- | --- |
 | file | <code>SourceFile</code> | The source file whose dist counterpart is wanted. |
 
-src: src/render.ts:384  
-dist: dist/render.js:291
+src: src/render.ts:392  
+dist: dist/render.js:298
 <a name="distMapperFor"></a>
 
 ## distMapperFor(distJs, srcAbsPath, issues) ⇒ <code>Promise&lt;DistMapperResult&gt;</code>
@@ -216,8 +220,8 @@ referring to a different source (stale build, foreign map).
 | srcAbsPath | <code>string</code> | Absolute path of the original source file the map must reference. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:398  
-dist: dist/render.js:304
+src: src/render.ts:406  
+dist: dist/render.js:311
 <a name="fail"></a>
 
 ## fail(file, outPath, message, issues) ⇒ <code>RenderFileResult</code>
@@ -233,8 +237,8 @@ Builds the failure result shape.
 | message | <code>string</code> | Why the render failed. |
 | issues | <code>string[]</code> | Notes collected before the failure. |
 
-src: src/render.ts:423  
-dist: dist/render.js:324
+src: src/render.ts:441  
+dist: dist/render.js:342
 <a name="noteOnce"></a>
 
 ## noteOnce(issues, issue)
@@ -247,8 +251,8 @@ Adds an issue once per file.
 | issues | <code>string[]</code> | The per-file notes accumulator (deduplicated in place). |
 | issue | <code>string</code> | The note to add. |
 
-src: src/render.ts:432  
-dist: dist/render.js:332
+src: src/render.ts:450  
+dist: dist/render.js:350
 <a name="withWarnSunk"></a>
 
 ## withWarnSunk(fn) ⇒ <code>Promise&lt;T&gt;</code>
@@ -261,5 +265,5 @@ Runs `fn` with `console.warn` silenced; the patch is never re-entered concurrent
 | --- | --- | --- |
 | fn | <code>() &#x3D;&gt; Promise&lt;T&gt;</code> | The operation whose warnings are sunk. |
 
-src: src/render.ts:447  
-dist: dist/render.js:346
+src: src/render.ts:465  
+dist: dist/render.js:364

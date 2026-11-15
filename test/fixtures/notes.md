@@ -12,7 +12,7 @@ committed anywhere here — tests resolve deps from the mdocs root.
 | `regular-repo-ts/` | src + pre-built dist (js/js.map/d.ts/d.ts.map) | TS happy path: generics (`first<T>`), default params (`clamp`), class + interface + type alias (`geometry.ts`), JSDoc with @param/@returns, exported-but-undocumented symbol (`double`), zero-JSDoc file (`broken.ts`), real src→dist line drift |
 | `regular-repo-js/` | src + dist built via `allowJs` tsc | plain JS + JSDoc `{number}` types, @example, defaults, ESM class `Counter` |
 | `monorepo/` | `packages/{alpha,beta}` each with own tsconfig + dist | workspaces glob `rootSrcDir: ['packages/*/src']` |
-| `no-dist/` | src only, **no dist** | docs must still generate; dist line marked `(approx.)` |
+| `no-dist/` | src only, **no dist** | docs must still generate; dist line omitted; one stderr warning + one issue |
 | `seeded-bad/` | **skipped** | a CRLF-file fixture was considered but skipped to keep size down — if the test author needs one, add `src/tricky/crlf.ts` with CRLF line endings (a one-liner: `printf 'export function f() {\r\n  return 1\r\n}\r\n' > src/tricky/crlf.ts`) |
 
 ## line-drift facts (verified by grep -n)

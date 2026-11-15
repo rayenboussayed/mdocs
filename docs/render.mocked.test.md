@@ -27,7 +27,6 @@ Builds a minimal doclet for tests (defaults: function/thing).
 | name | <code>string</code> | <code>&quot;thing&quot;</code> | The doclet name. |
 
 src: src/render.mocked.test.ts:36  
-dist: dist/render.mocked.test.js:30 (approx.)
 <a name="setup"></a>
 
 ## setup(dir, files) ⇒ <code>Promise&lt;void&gt;</code>
@@ -42,7 +41,6 @@ Writes `files` (name → content) under `<dir>/src`.
 | files | <code>Record&lt;string, string&gt;</code> | The files to write. |
 
 src: src/render.mocked.test.ts:52  
-dist: dist/render.mocked.test.js:45 (approx.)
 <a name="sourceFile"></a>
 
 ## sourceFile(relPath, extension, dir) ⇒ <code>SourceFile</code>
@@ -58,4 +56,3 @@ Builds a SourceFile record for tests.
 | dir | <code>string</code> | The absolute project directory. |
 
 src: src/render.mocked.test.ts:66  
-dist: dist/render.mocked.test.js:58 (approx.)

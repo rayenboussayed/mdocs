@@ -171,15 +171,52 @@ test('doclets beyond the emitted lines fall back to jsdoc lines with (approx.)',
     )
     expect(result.symbols).toBe(2)
     expect(result.markdown).toBe('rendered docs')
-    // Neither pointer can be mapped — the doclets dmd receives must carry (approx.) src and dist.
+    // Neither pointer can be mapped — the doclets dmd receives must carry (approx.) src and no dist line.
     const renderArgs = mocks.render.mock.calls[0]?.[0] as {
-      data: Array<{ mdocs?: { dist: string; src: string }; meta?: { lineno?: number } }>
+      data: Array<{ mdocs?: { dist?: string; src: string }; meta?: { lineno?: number } }>
     }
     const byLine = new Map(renderArgs.data.map((doclet) => [doclet.meta?.lineno, doclet.mdocs]))
     for (const lineno of [998, 999]) {
       expect(byLine.get(lineno)?.src).toMatch(/\(approx\.\)$/)
-      expect(byLine.get(lineno)?.dist).toMatch(/\(approx\.\)$/)
+      expect(byLine.get(lineno)?.dist).toBeUndefined()
     }
+  } finally {
+    await rm(dir, { force: true, recursive: true })
+  }
+})
+
+test('dist folder present but the dist file is missing suppresses the dist line and keeps one note', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  try {
+    await setup(dir, { 'x.js': 'export const x = 1\n' })
+    await mkdirp(join(dir, 'dist')) // folder exists, file does not
+    mocks.getTemplateData.mockResolvedValue([doclet(1)])
+    mocks.render.mockResolvedValue('rendered docs')
+    const result = await renderSourceFile(
+      { file: sourceFile('x.js', '.js', dir), index: 0 },
+      { outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
+    )
+    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdocs?: { dist?: string; src: string } }> }
+    expect(renderArgs.data[0]?.mdocs?.dist).toBeUndefined()
+    expect(result.issues.filter((issue) => issue.includes('dist file not found'))).toHaveLength(1)
+  } finally {
+    await rm(dir, { force: true, recursive: true })
+  }
+})
+
+test('a missing dist folder suppresses the dist line without touching the fs per file', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  try {
+    await setup(dir, { 'x.ts': 'export const x = 1\n' })
+    mocks.getTemplateData.mockResolvedValue([doclet(1)])
+    mocks.render.mockResolvedValue('rendered docs')
+    const result = await renderSourceFile(
+      { file: sourceFile('x.ts', '.ts', dir), index: 0 },
+      { missingDistDirs: new Set([join(dir, 'dist')]), outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
+    )
+    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdocs?: { dist?: string; src: string } }> }
+    expect(renderArgs.data[0]?.mdocs?.dist).toBeUndefined()
+    expect(result.issues.filter((issue) => issue.includes('dist file not found'))).toHaveLength(0)
   } finally {
     await rm(dir, { force: true, recursive: true })
   }

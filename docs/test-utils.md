@@ -33,7 +33,6 @@ assertions. Re-throws the original error untouched when it is not an
 | fn | <code>() &#x3D;&gt; unknown</code> | The function expected to throw an `MdocsError`. |
 
 src: src/test-utils.ts:17  
-dist: dist/test-utils.js:15 (approx.)
 <a name="mkdirp"></a>
 
 ## mkdirp(path) ⇒ <code>Promise&lt;void&gt;</code>
@@ -48,7 +47,6 @@ delegated to jutilities' `ensureDirectory`.
 | path | <code>string</code> | The directory to create. |
 
 src: src/test-utils.ts:33  
-dist: dist/test-utils.js:32 (approx.)
 <a name="readUtf8"></a>
 
 ## readUtf8(path) ⇒ <code>Promise&lt;string&gt;</code>
@@ -62,7 +60,6 @@ dist: dist/test-utils.js:32 (approx.)
 | path | <code>string</code> | The file to read. |
 
 src: src/test-utils.ts:42  
-dist: dist/test-utils.js:40 (approx.)
 <a name="writeUtf8"></a>
 
 ## writeUtf8(path, data) ⇒ <code>Promise&lt;void&gt;</code>
@@ -77,4 +74,3 @@ dist: dist/test-utils.js:40 (approx.)
 | data | <code>string</code> | The utf8 content to write. |
 
 src: src/test-utils.ts:53  
-dist: dist/test-utils.js:50 (approx.)

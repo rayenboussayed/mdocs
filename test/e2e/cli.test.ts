@@ -65,6 +65,22 @@ async function spawn(cwd: string, home: string, args: string[], env?: NodeJS.Pro
   }
 }
 
+test('cli: missing dist folder prints one stderr warning, exits 0, docs omit dist lines', async () => {
+  const home = await homeCopy()
+  onTestFinished(() => rm(home, { force: true, recursive: true }))
+  const dir = await projectCopy('no-dist')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  const result = await spawn(dir, home, [])
+  expect(result.code).toBe(0)
+  const warnings = result.stderr.split('\n').filter((line) => line.startsWith('mdocs: warning:'))
+  expect(warnings).toHaveLength(1)
+  expect(warnings[0]).toMatch(/dist folder not found/i)
+  expect(result.stdout).toMatch(/1 doc\(s\) written/)
+  const md = await readUtf8(join(dir, 'docs', 'lone.md'))
+  expect(md).not.toMatch(/^dist: /m)
+})
+
 test('cli: --help exits 0 and prints usage', async () => {
   const home = await homeCopy()
   onTestFinished(() => rm(home, { force: true, recursive: true }))

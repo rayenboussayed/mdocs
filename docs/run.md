@@ -26,7 +26,7 @@ for hard errors (config invalid, roots missing or overlapping).
 | --- | --- | --- |
 | options | <code>RunOptions</code> | Run options (cwd, config path, dry-run, inline config keys). |
 
-src: src/run.ts:68  
+src: src/run.ts:70  
 dist: dist/run.js:28
 <a name="tryOutputPath"></a>
 
@@ -40,8 +40,8 @@ Best-effort `outputPathFor` for the unreachable-error path.
 | --- | --- | --- |
 | file | <code>SourceFile</code> | The source file whose planned output path is wanted. |
 
-src: src/run.ts:182  
-dist: dist/run.js:133
+src: src/run.ts:199  
+dist: dist/run.js:148
 <a name="writeMarkdown"></a>
 
 ## writeMarkdown(target) ⇒ <code>Promise&lt;void&gt;</code>
@@ -56,5 +56,5 @@ Writes one rendered markdown file.
 | target.outPath |  | Absolute destination of the markdown. |
 | target.markdown |  | The markdown content. |
 
-src: src/run.ts:199  
-dist: dist/run.js:150
+src: src/run.ts:216  
+dist: dist/run.js:165

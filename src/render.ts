@@ -29,7 +29,7 @@ import jsdoc2md from 'jsdoc-to-markdown'
 import { withRetryAsync } from 'jutilities/hof/retry'
 import { withTimeoutAsync } from 'jutilities/hof/timeout'
 import { ensureDirectory } from 'jutilities/node/fs/dir'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import ts from 'typescript'
 
@@ -52,7 +52,7 @@ export interface RenderFileResult {
   /** Set when the file failed to render. */
   error?: string
   file: SourceFile
-  /** Non-fatal notes (approximations, missing dist maps, …). */
+  /** Non-fatal notes (approximations, missing dist maps, omitted dist lines, …). */
   issues: string[]
   /** The generated markdown — present only on success. */
   markdown?: string
@@ -74,8 +74,8 @@ const DOCS_OVERRIDE = `{{>header~}}
 `
 
 const MDOCS_SOURCE_PARTIAL = `{{#if mdocs}}src: {{{mdocs.src}}}  
-dist: {{{mdocs.dist}}}
-{{/if~}}
+{{#if mdocs.dist}}dist: {{{mdocs.dist}}}
+{{/if~}}{{/if~}}
 `
 
 type PreparedFile =
@@ -86,6 +86,7 @@ type PreparedFile =
  * Renders one source file into markdown (or reports why it could not).
  * @param job - The file to render and its pool index.
  * @param deps - Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout).
+ * @param deps.missingDistDirs - Absolute distDirs known to be missing/not-directories (probed once per project by the run); for those projects no `dist:` line is emitted.
  * @param deps.scratchDir - Per-file scratch directory for the transpiled/copied source.
  * @param deps.partials - The handlebars partial override files (dmd template).
  * @param deps.outPath - Where the generated markdown goes.
@@ -97,6 +98,8 @@ type PreparedFile =
 export async function renderSourceFile(
   job: RenderFileJob,
   deps: {
+    /** Absolute distDirs known to be missing/not-directories (probed once per project by the run). Absent ⇒ per-file probing. */
+    missingDistDirs?: ReadonlySet<string>
     outPath: string
     partials: readonly string[]
     /**
@@ -151,7 +154,7 @@ export async function renderSourceFile(
     return fail(file, deps.outPath, `jsdoc failed: ${errorMessage(reason)}`)
   }
 
-  const pointers = await computePointers(file, data, prepared.mapper, issues, deps.pointerBase)
+  const pointers = await computePointers(file, data, prepared.mapper, issues, deps.pointerBase, deps.missingDistDirs?.has(file.project.distDir) ?? false)
   injectPointers(data, pointers)
   if (isTypeScriptExtension(file.extension)) {
     injectCheckerTypes(data, deps.typeProgram, file.absPath)
@@ -210,6 +213,7 @@ export async function writeTemplatePartials(scratchDir: string): Promise<string[
  * @param transpileMapper - Mapper from the in-memory transpile, or `null` for pass-through copies.
  * @param issues - Per-file notes accumulator.
  * @param pointerBase - Absolute base for cwd-relative `src:`/`dist:` pointers.
+ * @param distFolderMissing - `true` when the project's dist folder was probed missing; the dist lookup is skipped entirely.
  * @returns A generated-line → pointer map.
  */
 async function computePointers(
@@ -218,22 +222,23 @@ async function computePointers(
   transpileMapper: null | SourceLineMapper,
   issues: string[],
   pointerBase: string,
+  distFolderMissing: boolean = false,
 ): Promise<Map<number, SymbolPointer>> {
   const pointers = new Map<number, SymbolPointer>()
   const distJs = distJsPathFor(file)
   const pointerSource = pointerPath(pointerBase, file.absPath)
   const pointerDist = pointerPath(pointerBase, distJs)
-  const { kind: distKind, mapper: distMapper } = await distMapperFor(distJs, file.absPath, issues)
+  const { kind: distKind, mapper: distMapper } = distFolderMissing
+    ? { kind: 'no-folder' as const, mapper: null }
+    : await distMapperFor(distJs, file.absPath, issues)
 
   for (const doclet of data) {
     const generatedLine = doclet.meta?.lineno
     if (generatedLine === undefined) continue
     const src = resolveSrcLine(generatedLine, transpileMapper)
     const dist = resolveDistPointer(src.srcLine, transpileMapper, { distKind, distMapper, pointerDist }, issues)
-    pointers.set(generatedLine, {
-      dist,
-      src: `${pointerSource}:${String(src.srcLine)}${src.srcApprox ? ' (approx.)' : ''}`,
-    })
+    const pointer = { src: `${pointerSource}:${String(src.srcLine)}${src.srcApprox ? ' (approx.)' : ''}` }
+    pointers.set(generatedLine, dist === undefined ? pointer : { dist, ...pointer })
   }
   return pointers
 }
@@ -312,23 +317,26 @@ async function prepareForJsdoc(file: SourceFile, srcText: string, scratchDir: st
 }
 
 /**
- * Computes the dist pointer for one doclet. When the dist map exists but the
- * lookup misses, one "dist sourcemap missing or unmatched" note is recorded
- * (the no-map/no-dist cases already got their own single note).
+ * Computes the dist pointer for one doclet. A missing dist folder (project probe)
+ * or dist file (per-file probe) omits the dist line entirely; when the dist map
+ * exists but the lookup misses, one "dist sourcemap missing or unmatched" note is
+ * recorded instead.
  * @param srcLine - The source (original) line for the symbol.
  * @param transpileMapper - Mapper from the transpile emit, or `null` for pass-through copies.
  * @param dist - Dist lookup context (kind, mapper, pointer path) computed once per file.
  * @param issues - Per-file notes accumulator.
- * @returns The `dist:` pointer line.
+ * @returns The `dist:` pointer line, or `undefined` when the dist line must be omitted.
  */
 function resolveDistPointer(
   srcLine: number,
   transpileMapper: null | SourceLineMapper,
   dist: DistPointerContext,
   issues: string[],
-): string {
+): string | undefined {
+  if (dist.distKind === 'no-folder') return undefined
   const distExact = dist.distMapper?.toGenerated(srcLine) ?? null
   if (distExact !== null) return `${dist.pointerDist}:${String(distExact)}`
+  if (dist.distKind === 'no-dist') return undefined
   if (dist.distKind === 'map') noteOnce(issues, 'dist sourcemap missing or unmatched — dist line is an approximation')
   const approx = transpileMapper === null ? null : transpileMapper.toGenerated(srcLine)
   return approx === null ? `${dist.pointerDist} (approx.)` : `${dist.pointerDist}:${String(approx)} (approx.)`
@@ -369,7 +377,7 @@ interface DistMapperResult {
 /** Dist lookup context for one file — computed once, reused per doclet. */
 interface DistPointerContext {
   /** Why the dist map might be missing — drives which note is emitted. */
-  readonly distKind: DistMapInfo['kind']
+  readonly distKind: 'no-folder' | DistMapInfo['kind']
   /** Mapper for the committed `dist/*.js.map`, or `null` when absent/stale. */
   readonly distMapper: null | SourceLineMapper
   /** Posix, cwd-relative path of the dist file used for messages. */
@@ -400,11 +408,21 @@ async function distMapperFor(
   srcAbsPath: string,
   issues: string[],
 ): Promise<DistMapperResult> {
-  const info = await readFileSourceMap(distJs)
-  if (info.kind === 'no-dist') {
-    noteOnce(issues, 'dist file not found — build first for an exact dist line')
+  // A stale map can outlive its .js — require the dist file itself to exist first.
+  try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
+    await stat(distJs)
+  } catch {
+    noteOnce(issues, 'dist file not found — dist: line omitted (build first)')
     return { kind: 'no-dist', mapper: null }
   }
+  const info = await readFileSourceMap(distJs)
+  /* v8 ignore start — unreachable by design: the stat above already fails for a missing dist .js; this guards only a file vanishing between stat and read (TOCTOU), not ordinary failures. */
+  if (info.kind === 'no-dist') {
+    noteOnce(issues, 'dist file not found — dist: line omitted (build first)')
+    return { kind: 'no-dist', mapper: null }
+  }
+  /* v8 ignore stop */
   if (info.kind === 'no-map') {
     noteOnce(issues, 'dist sourcemap missing — build with "sourceMap: true" for an exact dist line')
     return { kind: 'no-map', mapper: null }

@@ -89,8 +89,8 @@ Prints resolved settings and per-file details (--verbose).
 | --- | --- | --- |
 | result | <code>RunResult</code> | The run result to print. |
 
-src: src/cli.ts:158  
-dist: dist/cli.js:145
+src: src/cli.ts:159  
+dist: dist/cli.js:147
 <a name="readVersion"></a>
 
 ## readVersion() ⇒ <code>string</code>
@@ -98,5 +98,5 @@ Reads the package version from package.json (present in the published package).
 
 **Kind**: global function  
 **Returns**: <code>string</code> - The package version, or `0.0.0-unknown` when unreadable.  
-src: src/cli.ts:173  
-dist: dist/cli.js:162
+src: src/cli.ts:174  
+dist: dist/cli.js:164

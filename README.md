@@ -311,7 +311,7 @@ dist: dist/math.js:7
 Notes on the format:
 
 - The body is the standard `jsdoc-to-markdown` rendering of the symbol (heading, description, `**Kind**`, param table, example blocks).
-- The `src:` and `dist:` lines are printed at the end of the symbol's block, before the member listing (classes) and before the next symbol.
+- The `src:` and `dist:` lines are printed at the end of the symbol's block, before the member listing (classes) and before the next symbol. The `dist:` line is only printed when a usable build exists.
 - Paths are relative to the directory you run `mdocs` from (the workspace root), not absolute OS paths.
 - When the build output has no usable source map, the dist pointer is marked approximate:
 
@@ -320,7 +320,7 @@ Notes on the format:
   ```
 
   and a note is printed with `--verbose`.
-- If the dist file does not exist at all, the pointer keeps the path and gains `(approx.)`.
+- If the dist file does not exist at all, the `dist:` line is omitted entirely — the symbol carries only the `src:` pointer — and a note is recorded per file (visible with `--verbose`). A missing `dist/` folder is reported once on stderr and recorded once per project. Neither is an error: the exit code stays `0`.
 - The relative directory structure of the source tree is preserved under the output folder, so `src/nested/bar.ts` becomes `docs/nested/bar.md`.
 
 ### Class example
@@ -374,6 +374,7 @@ To find the line of a symbol in the compiled output, mdocs reads the build's sou
 
 - The `dist:` line is **exact** when the source map is present and covers the file.
 - The `dist:` line is marked **`(approx.)`** when `dist/<file>.js.map` is missing (a `sourceMap: true` build fixes this) or when it does not cover the file. The position is then inferred.
+- The `dist:` line is **omitted** when the `dist/` folder is missing at run time (one stderr warning per project) or when the individual `dist/<file>.js` is missing (one issue per file).
 - Class member symbols, `interface`s, `type` aliases (erased at compile time) have no `dist:` line.
 
 ---
@@ -478,7 +479,7 @@ export class UserRepository {
 
 **Interfaces and type aliases are not documented.** They are erased at compile time, so no doclet exists for them. Document values — functions, classes, methods, constants — and give their types `@typedef` if you need them described.
 
-**The `dist:` line depends on your build.** For exact positions, `dist/` must be built from the same sources (same `sourceMap` setting). A `dist/` built with different options, or without `sourceMap`, yields `(approx.)` pointers instead.
+**The `dist:` line depends on your build.** For exact positions, `dist/` must be built from the same sources (same `sourceMap` setting). A `dist/` built with different options, or without `sourceMap`, yields `(approx.)` pointers instead. If no `dist/` has been built at all, or a file's `.js` has no counterpart, no `dist:` line is emitted and a single warning/issue is recorded instead.
 
 **Caching.** The jsdoc analysis cache is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files.
 
