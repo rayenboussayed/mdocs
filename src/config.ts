@@ -27,33 +27,9 @@ import { basename, dirname, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import { errorMessage, isMdocsError, MdocsError } from './errors.js'
-import { type MdocsConfigInput, parseMdocsConfig, parseProcessEnv } from './schema.js'
+import { type MdocsConfigInput, type MdocsConfigOutput, parseMdocsConfig, parseProcessEnv } from './schema.js'
 
-/**
- * User-facing configuration object (all keys optional — see `DEFAULT_CONFIG`;
- * each key is validated by the zod schema in `schema.js`).
- */
-export type MdocsConfig = MdocsConfigInput
-
-/** Validated, fully-resolved configuration used by the pipeline. */
-export interface ResolvedMdocsConfig {
-  /** Plain directory name for the generated docs. */
-  outDirName: string
-  /** Concrete worker count (`>= 1`). */
-  parallelism: number
-  /** Plain directory name for the build output. */
-  rootDistDir: string
-  /** Absolute or `cwd`-relative roots, exactly as provided (globs intact). */
-  rootSrcDir: string[]
-}
-
-/** Default values for every configuration key. */
-export const DEFAULT_CONFIG = {
-  outDirName: 'docs',
-  parallelism: true,
-  rootDistDir: 'dist',
-  rootSrcDir: ['src'],
-} as const
+export { DEFAULT_CONFIG } from './schema.js'
 
 /** Environment passed to the function form of the config. */
 export interface ConfigEnv {
@@ -64,6 +40,12 @@ export interface ConfigEnv {
 }
 
 /**
+ * User-facing configuration object (all keys optional — see `DEFAULT_CONFIG`;
+ * each key is validated by the zod schema in `schema.js`).
+ */
+export type MdocsConfig = MdocsConfigInput
+
+/**
  * What a config file may export: the object itself, a promise of it, or a
  * function (sync or async) receiving `ConfigEnv`.
  */
@@ -71,6 +53,22 @@ export type MdocsConfigExport =
   | ((env: ConfigEnv) => MdocsConfig | Promise<MdocsConfig>)
   | MdocsConfig
   | Promise<MdocsConfig>
+
+/** Validated, fully-resolved configuration used by the pipeline. */
+export interface ResolvedMdocsConfig {
+  /** Master switch for the render cache. */
+  cache: boolean
+  /** Cache destination resolved against cwd (relative, as configured). */
+  cachePath: string
+  /** Plain directory name for the generated docs. */
+  outDirName: string
+  /** Concrete worker count (`>= 1`). */
+  parallelism: number
+  /** Plain directory name for the build output. */
+  rootDistDir: string
+  /** Absolute or `cwd`-relative roots, exactly as provided (globs intact). */
+  rootSrcDir: string[]
+}
 
 /**
  * Identity helper for typed configs, mirroring vite's `defineConfig`:
@@ -132,12 +130,14 @@ export async function loadConfig(
  */
 export function resolveConfig(raw: unknown): ResolvedMdocsConfig {
   // Shape and key validation live in parseMdocsConfig — the single validation root.
-  const input = parseMdocsConfig(raw)
+  const input: MdocsConfigOutput = parseMdocsConfig(raw)
   return Object.freeze({
-    outDirName: input.outDirName ?? DEFAULT_CONFIG.outDirName,
+    cache: input.cache,
+    cachePath: input.cachePath,
+    outDirName: input.outDirName,
     parallelism: resolveParallelism(input.parallelism),
-    rootDistDir: input.rootDistDir ?? DEFAULT_CONFIG.rootDistDir,
-    rootSrcDir: input.rootSrcDir === undefined ? [...DEFAULT_CONFIG.rootSrcDir] : toArray(input.rootSrcDir),
+    rootDistDir: input.rootDistDir,
+    rootSrcDir: [...toArray(input.rootSrcDir)],
   })
 }
 
@@ -360,11 +360,10 @@ function nearestPackageType(filePath: string): 'commonjs' | 'module' | undefined
 
 /**
  * Resolves the effective worker count ("true" = all cores).
- * @param value - The user-facing `parallelism` (boolean, number, or unset).
+ * @param value - The user-facing `parallelism` (boolean or number).
  * @returns The concrete worker count.
  */
-function resolveParallelism(value: boolean | number | undefined): number {
-  if (value === undefined) return availableParallelism()
+function resolveParallelism(value: boolean | number): number {
   if (typeof value === 'boolean') return value ? availableParallelism() : 1
   return value
 }

@@ -37,7 +37,20 @@ function dirSegments(value: string): string[] {
   return value.trim().split(/[\\/]+/).filter((segment) => segment !== '' && segment !== '.')
 }
 
-/** Relative directory name allowed for `rootDistDir` / `outDirName`. */
+/**
+ * Default values for every configuration key. Single source for the schema
+ * `.default()` arguments and the public `DEFAULT_CONFIG` export.
+ */
+export const DEFAULT_CONFIG = {
+  cache: true,
+  cachePath: '.mdocscache',
+  outDirName: 'docs',
+  parallelism: true,
+  rootDistDir: 'dist',
+  rootSrcDir: ['src'],
+}
+
+/** Relative directory name allowed for `rootDistDir` / `outDirName` / `cachePath`. */
 const relativeDirName = z
   .string()
   .trim()
@@ -58,9 +71,11 @@ const rootSrcDirEntry = z.string().trim().min(1, 'rootSrcDir entries must be non
  * unrecognized key is nearly always a typo'd option).
  */
 const mdocsConfigSchema = z.strictObject({
-  outDirName: relativeDirName.optional(),
-  parallelism: z.union([z.boolean(), z.number().int().min(1).max(1024)]).optional(),
-  rootDistDir: relativeDirName.optional(),
+  cache: z.boolean().default(DEFAULT_CONFIG.cache),
+  cachePath: relativeDirName.default(DEFAULT_CONFIG.cachePath),
+  outDirName: relativeDirName.default(DEFAULT_CONFIG.outDirName),
+  parallelism: z.union([z.boolean(), z.number().int().min(1).max(1024)]).default(DEFAULT_CONFIG.parallelism),
+  rootDistDir: relativeDirName.default(DEFAULT_CONFIG.rootDistDir),
   rootSrcDir: z
     .union(
       [
@@ -69,18 +84,19 @@ const mdocsConfigSchema = z.strictObject({
       ],
       { error: () => 'must be a string or an array of non-empty strings' },
     )
-    .optional(),
+    .default(DEFAULT_CONFIG.rootSrcDir),
 })
 
-export type MdocsConfigInput = z.output<typeof mdocsConfigSchema>
+export type MdocsConfigInput = z.input<typeof mdocsConfigSchema>
+export type MdocsConfigOutput = z.output<typeof mdocsConfigSchema>
 
 /**
  * Parses `input` (config file content) into a validated object, throwing
  * `MdocsError` with a message that names every offending key.
  * @param input - The unvalidated config input.
- * @returns The validated config (all keys optional).
+ * @returns The validated config (all keys present; defaults applied).
  */
-export function parseMdocsConfig(input: unknown): MdocsConfigInput {
+export function parseMdocsConfig(input: unknown): MdocsConfigOutput {
   const result = mdocsConfigSchema.safeParse(input)
   if (result.success) return result.data
   throw new MdocsError('INVALID_CONFIG', formatIssues(result.error))
@@ -108,7 +124,7 @@ function formatIssues(error: z.ZodError): string {
   const parts: string[] = []
   for (const issue of error.issues) {
     if (issue.code === 'unrecognized_keys') {
-      parts.push(`unknown config key(s): ${issue.keys.join(', ')}. Allowed keys: rootSrcDir, rootDistDir, outDirName, parallelism`)
+      parts.push(`unknown config key(s): ${issue.keys.join(', ')}. Allowed keys: rootSrcDir, rootDistDir, outDirName, parallelism, cache, cachePath`)
       continue
     }
     const path = issue.path.join('.')

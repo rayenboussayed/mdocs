@@ -19,8 +19,26 @@ test('resolveConfig applies defaults for an empty object', () => {
   expect(resolved.rootSrcDir).toEqual(['src'])
   expect(resolved.rootDistDir).toBe('dist')
   expect(resolved.outDirName).toBe('docs')
+  expect(resolved.cache).toBe(true)
+  expect(resolved.cachePath).toBe('.mdocscache')
   expect(Number.isInteger(resolved.parallelism)).toBe(true)
   expect(resolved.parallelism).toBeGreaterThanOrEqual(1)
+})
+
+test('resolveConfig rejects bad cache options', async () => {
+  const badCache = await expectMdocsError(() => resolveConfig({ cache: 'yes' }))
+  expect(badCache.message).toMatch(/cache/)
+  const badCachePath = await expectMdocsError(() => resolveConfig({ cachePath: '' }))
+  expect(badCachePath.message).toMatch(/cachePath/)
+  const absolute = await expectMdocsError(() => resolveConfig({ cachePath: '/absolute/path' }))
+  expect(absolute.message).toMatch(/cachePath/)
+  const escape = await expectMdocsError(() => resolveConfig({ cachePath: '../escape' }))
+  expect(escape.message).toMatch(/\.\./)
+})
+
+test('resolveConfig honours an explicit cache opt-out', () => {
+  expect(resolveConfig({ cache: false, cachePath: 'cache' }).cache).toBe(false)
+  expect(resolveConfig({ cache: false, cachePath: 'cache' }).cachePath).toBe('cache')
 })
 
 test('resolveConfig honours explicit values', () => {
@@ -48,6 +66,7 @@ test('resolveConfig rejects unknown keys with the allowed list', async () => {
   const error = await expectMdocsError(() => resolveConfig({ rootSrc: 'src' }))
   expect(error.message).toMatch(/unknown config key/)
   expect(error.message).toMatch(/rootSrcDir/)
+  expect(error.message).toMatch(/cachePath/)
 })
 
 test('resolveConfig rejects bad rootSrcDir shapes', async () => {

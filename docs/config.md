@@ -1,11 +1,3 @@
-## Constants
-
-<dl>
-<dt><a href="#DEFAULT_CONFIG">DEFAULT_CONFIG</a></dt>
-<dd><p>Default values for every configuration key.</p>
-</dd>
-</dl>
-
 ## Functions
 
 <dl>
@@ -97,14 +89,6 @@ the config keep working — with a hidden, unique name, removed afterwards.</p>
 </dd>
 </dl>
 
-<a name="DEFAULT_CONFIG"></a>
-
-## DEFAULT\_CONFIG
-Default values for every configuration key.
-
-**Kind**: global constant  
-src: src/config.ts:51  
-dist: dist/config.js:31
 <a name="defineConfig"></a>
 
 ## defineConfig(config) ⇒ <code>MdocsConfigExport</code>
@@ -119,8 +103,8 @@ happens in `resolveConfig`, after the config is loaded.
 | --- | --- | --- |
 | config | <code>MdocsConfigExport</code> | The typed config object, function, or promise of either. |
 
-src: src/config.ts:82  
-dist: dist/config.js:44
+src: src/config.ts:80  
+dist: dist/config.js:38
 <a name="loadConfig"></a>
 
 ## loadConfig(cwd, explicitPath, overrides) ⇒ <code>Promise&lt;{ config: ResolvedMdocsConfig; filePath: string \| undefined; }&gt;</code>
@@ -142,10 +126,10 @@ wins for its own key, everything else comes from the file.
 | --- | --- | --- |
 | cwd | <code>string</code> | Working directory for config lookup and relative roots. |
 | explicitPath | <code>string</code> | Explicit `--config` path (beats auto-discovery). |
-| overrides | <code>{ outDirName?: string; parallelism?: number \| boolean; rootDistDir?: string; rootSrcDir?: string \| string[]; }</code> | Config keys merged over the file's config. |
+| overrides | <code>{ cache?: boolean; cachePath?: string; outDirName?: string; parallelism?: number \| boolean; rootDistDir?: string; rootSrcDir?: string \| string[]; }</code> | Config keys merged over the file's config. |
 
-src: src/config.ts:104  
-dist: dist/config.js:64
+src: src/config.ts:102  
+dist: dist/config.js:58
 <a name="resolveConfig"></a>
 
 ## resolveConfig(raw) ⇒ <code>ResolvedMdocsConfig</code>
@@ -158,8 +142,8 @@ Resolves and validates a user-facing config into a `ResolvedMdocsConfig`.
 | --- | --- | --- |
 | raw | <code>unknown</code> | The user-facing (unvalidated) config. |
 
-src: src/config.ts:133  
-dist: dist/config.js:91
+src: src/config.ts:131  
+dist: dist/config.js:85
 <a name="configLoadError"></a>
 
 ## configLoadError(filePath, cause) ⇒ <code>MdocsError</code>
@@ -174,7 +158,7 @@ Wraps config-loading failures with a consistent code and message.
 | cause | <code>unknown</code> | The underlying error. |
 
 src: src/config.ts:150  
-dist: dist/config.js:107
+dist: dist/config.js:103
 <a name="definedOverrides"></a>
 
 ## definedOverrides(overrides) ⇒ <code>Record&lt;string, unknown&gt;</code>
@@ -185,10 +169,10 @@ Keeps only the keys of `overrides` that are actually set.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| overrides | <code>{ outDirName?: string; parallelism?: number \| boolean; rootDistDir?: string; rootSrcDir?: string \| string[]; }</code> | The user-facing config overrides (any keys missing are kept unset). |
+| overrides | <code>{ cache?: boolean; cachePath?: string; outDirName?: string; parallelism?: number \| boolean; rootDistDir?: string; rootSrcDir?: string \| string[]; }</code> | The user-facing config overrides (any keys missing are kept unset). |
 
 src: src/config.ts:160  
-dist: dist/config.js:116
+dist: dist/config.js:112
 <a name="describeType"></a>
 
 ## describeType(value) ⇒ <code>string</code>
@@ -202,7 +186,7 @@ Human-readable description of a value's runtime type.
 | value | <code>unknown</code> | The value to describe. |
 
 src: src/config.ts:174  
-dist: dist/config.js:130
+dist: dist/config.js:126
 <a name="evaluateConfigExport"></a>
 
 ## evaluateConfigExport(exported, filePath) ⇒ <code>Promise&lt;unknown&gt;</code>
@@ -219,7 +203,7 @@ so by the time the value gets here any promise layers have already settled.
 | filePath | <code>string</code> | The config file it came from (for errors). |
 
 src: src/config.ts:192  
-dist: dist/config.js:148
+dist: dist/config.js:144
 <a name="importConfigModule"></a>
 
 ## importConfigModule(filePath) ⇒ <code>Promise&lt;unknown&gt;</code>
@@ -245,7 +229,7 @@ through the fallback, not through `require(esm)`.
 | filePath | <code>string</code> | The config file to import. |
 
 src: src/config.ts:232  
-dist: dist/config.js:184
+dist: dist/config.js:180
 <a name="importEsmInCommonJsPackage"></a>
 
 ## importEsmInCommonJsPackage(filePath) ⇒ <code>Promise&lt;unknown&gt;</code>
@@ -261,7 +245,7 @@ the config keep working — with a hidden, unique name, removed afterwards.
 | filePath | <code>string</code> | The `.js` config file whose ESM-in-CJS content is loaded. |
 
 src: src/config.ts:266  
-dist: dist/config.js:221
+dist: dist/config.js:217
 <a name="isEsmInCjsError"></a>
 
 ## isEsmInCjsError(error) ⇒ <code>boolean</code>
@@ -275,7 +259,7 @@ True when `error` reports ESM syntax loaded as CommonJS (Node-version-dependent)
 | error | <code>unknown</code> | The catch value to classify. |
 
 src: src/config.ts:290  
-dist: dist/config.js:242
+dist: dist/config.js:238
 <a name="isModuleNamespace"></a>
 
 ## isModuleNamespace(value) ⇒ <code>boolean</code>
@@ -289,7 +273,7 @@ Detects a native ESM module namespace exotic object.
 | value | <code>unknown</code> | The value to test. |
 
 src: src/config.ts:305  
-dist: dist/config.js:256
+dist: dist/config.js:252
 <a name="locateConfigFile"></a>
 
 ## locateConfigFile(cwd, explicitPath) ⇒ <code>Promise&lt;string&gt;</code>
@@ -304,7 +288,7 @@ Finds the config file to use, honoring an explicit `--config` override.
 | explicitPath | <code>string</code> | Explicit `--config` path (never auto-discovered). |
 
 src: src/config.ts:315  
-dist: dist/config.js:265
+dist: dist/config.js:261
 <a name="nearestPackageType"></a>
 
 ## nearestPackageType(filePath) ⇒ <code>&quot;commonjs&quot; \| &quot;module&quot;</code>
@@ -318,7 +302,7 @@ Nearest `package.json` `"type"` walking up from `filePath` (or undefined).
 | filePath | <code>string</code> | The config file to start from. |
 
 src: src/config.ts:344  
-dist: dist/config.js:294
+dist: dist/config.js:290
 <a name="resolveParallelism"></a>
 
 ## resolveParallelism(value) ⇒ <code>number</code>
@@ -329,7 +313,7 @@ Resolves the effective worker count ("true" = all cores).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>number \| boolean</code> | The user-facing `parallelism` (boolean, number, or unset). |
+| value | <code>number \| boolean</code> | The user-facing `parallelism` (boolean or number). |
 
 src: src/config.ts:366  
-dist: dist/config.js:318
+dist: dist/config.js:314
