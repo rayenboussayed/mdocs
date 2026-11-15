@@ -46,8 +46,9 @@
     "prepublishOnly": "npm run clean && npm run check",
     "prepack": "npm run clean && npm run build",
     "knip": "knip",
-    "prepare": "husky || true",
-    "lint:fix": "eslint . --fix --cache"
+    "prepare": "husky",
+    "lint:fix": "eslint . --fix --cache",
+    "types:sync": "node scripts/sync-jsdoc-to-markdown-types.mjs"
   },
   "dependencies": {
     "@jridgewell/trace-mapping": "^0.3.31",
