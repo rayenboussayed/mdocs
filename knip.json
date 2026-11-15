@@ -4,7 +4,8 @@
     "-lintignore"
   ],
   "entry": [
-    "test/bench/**/*.ts"
+    "test/bench/**/*.ts",
+    "mdocs.config.js"
   ],
   "ignore": [
     "test/*.test.ts",
