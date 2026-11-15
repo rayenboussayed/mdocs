@@ -8,7 +8,8 @@
  * `run()` is the programmatic API used by both the CLI and library consumers.
  * It never calls `process.exit`; failures are reported in the result.
  */
-import { mkdir, writeFile } from 'node:fs/promises'
+import { ensureDirectory } from 'jutilities/node/fs/dir'
+import { writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { performance } from 'node:perf_hooks'
 
@@ -196,8 +197,7 @@ function tryOutputPath(file: SourceFile): string {
  * @returns Nothing.
  */
 async function writeMarkdown(target: { markdown: string; outPath: string; }): Promise<void> {
-  // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-  await mkdir(dirname(target.outPath), { recursive: true })
+  await ensureDirectory({ directory: dirname(target.outPath) })
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
   await writeFile(target.outPath, target.markdown, { encoding: 'utf8', mode: 0o644 })
 }

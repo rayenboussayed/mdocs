@@ -3,14 +3,14 @@
  * of source files (jsdoc cannot parse TypeScript, and we prefer not to feed
  * user paths to jsdoc directly).
  *
- * The directory is created with `mkdtemp` (mode `0700`), each file inside it
- * is written with mode `0600`, and the whole tree is removed in a `finally`
- * block — plus a best-effort cleanup on SIGINT/SIGTERM, where `finally` does
- * not run. Scratch paths contain no user content beyond the source itself.
+ * The directory is created via `createTempDirectory` from jutilities (a `mkdtemp`
+ * wrapper; mode `0700`), each file inside it is written with mode `0600`, and the
+ * whole tree is removed in a `finally` block — plus a best-effort cleanup on
+ * SIGINT/SIGTERM, where `finally` does not run. Scratch paths contain no user
+ * content beyond the source itself.
  */
-import { mkdtemp, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { createTempDirectory } from 'jutilities/node/fs/dir'
+import { rm } from 'node:fs/promises'
 
 /** The scratch directory for one run. All paths inside it are disposable. */
 export interface Scratch {
@@ -25,7 +25,7 @@ export interface Scratch {
  * @returns The value returned by `fn`.
  */
 export async function withScratch<T>(fn: (scratch: Scratch) => Promise<T>): Promise<T> {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-'))
+  const dir = await createTempDirectory({ prefix: 'mdocs-' })
   /* v8 ignore start — rm with force practically never fails; the rejection handler is defensive. */
   const cleanup = (): Promise<void> =>
     rm(dir, { force: true, recursive: true }).then(

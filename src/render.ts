@@ -26,7 +26,10 @@
  * `run.ts`; this module renders a single file.
  */
 import jsdoc2md from 'jsdoc-to-markdown'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { withRetryAsync } from 'jutilities/hof/retry'
+import { withTimeoutAsync } from 'jutilities/hof/timeout'
+import { ensureDirectory } from 'jutilities/node/fs/dir'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import ts from 'typescript'
 
@@ -125,16 +128,27 @@ export async function renderSourceFile(
   const prepared = await prepareForJsdoc(file, srcText, scratchDir)
   if (prepared.ok === false) return fail(file, deps.outPath, prepared.error)
 
+  const timeoutMs = deps.timeoutMs ?? 60_000
   let data: DmdDoclet[]
   try {
-    const templateData = await withTimeout(
-      withRetryOnce(() => jsdoc2md.getTemplateData({ files: [prepared.scratchFile], 'no-cache': true })),
-      deps.timeoutMs ?? 60_000,
-      `jsdoc timed out after ${String(deps.timeoutMs ?? 60_000)}ms on ${file.relPath}`,
+    // One retry absorbs jsdoc's child exit-vs-close stdout race; a second failure
+    // propagates the original error. Never the default policy — it busy-waits via sleepSync.
+    const retryOnce = withRetryAsync(
+      () => jsdoc2md.getTemplateData({ files: [prepared.scratchFile], 'no-cache': true }),
+      // jutilities calls onError with retries starting at 0; throwing here rethrows the failing error.
+      { onError: ({ error, retries }) => { if (retries >= 1) throw error } },
     )
+    // Timeout stays outermost — a hung jsdoc is never retried. The library rejects
+    // the no-signal wall-clock race with `signal?.reason` (undefined); remapped below.
+    const templateData = await withTimeoutAsync(retryOnce, { timeoutMs })()
     data = normalizeDoclets(templateData as DmdDoclet[])
   } catch (cause) {
-    return fail(file, deps.outPath, `jsdoc failed: ${errorMessage(cause)}`)
+    // A wall-clock timeout rejects with `undefined` when no signal is passed —
+    // remap it to the per-file timeout error; anything else is jsdoc's own rejection.
+    const reason = cause === undefined
+      ? new MdocsError('RENDER_TIMEOUT', `jsdoc timed out after ${String(timeoutMs)}ms on ${file.relPath}`)
+      : cause
+    return fail(file, deps.outPath, `jsdoc failed: ${errorMessage(reason)}`)
   }
 
   const pointers = await computePointers(file, data, prepared.mapper, issues, deps.pointerBase)
@@ -181,8 +195,7 @@ export async function writeTemplatePartials(scratchDir: string): Promise<string[
   const partialsDir = join(scratchDir, 'partials')
   const docsPath = join(partialsDir, 'docs.hbs')
   const sourcePath = join(partialsDir, 'mdocs-source.hbs')
-  // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-  await mkdir(partialsDir, { recursive: true })
+  await ensureDirectory({ directory: partialsDir })
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
   await writeFile(docsPath, DOCS_OVERRIDE, { encoding: 'utf8', mode: 0o600 })
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
@@ -244,8 +257,7 @@ function pointerPath(base: string, absPath: string): string {
  */
 async function prepareForJsdoc(file: SourceFile, srcText: string, scratchDir: string): Promise<PreparedFile> {
   try {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-    await mkdir(scratchDir, { recursive: true })
+    await ensureDirectory({ directory: scratchDir })
   } catch (cause) {
     return { error: `cannot create the scratch directory: ${errorMessage(cause)}`, ok: false }
   }
@@ -419,41 +431,6 @@ function fail(file: SourceFile, outPath: string, message: string, issues: string
  */
 function noteOnce(issues: string[], issue: string): void {
   if (!issues.includes(issue)) issues.push(issue)
-}
-
-/**
- * Retries an async operation exactly once. jsdoc's child process resolves on
- * `exit` (not `close`), so stdout can rarely be undelivered before the parent
- * settles — one retry absorbs the race without hiding deterministic failures.
- * @param fn - The operation to retry.
- * @returns The operation's result (first or second attempt).
- */
-async function withRetryOnce<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn()
-  } catch {
-    return fn()
-  }
-}
-
-/**
- * Races `promise` against a hard timeout, rejecting with `MdocsError('RENDER_TIMEOUT')`
- * so a hung jsdoc child surfaces as a per-file error instead of stalling the pool.
- * @param promise - The operation to bound.
- * @param ms - Milliseconds before the race rejects.
- * @param message - The message carried by the RENDER_TIMEOUT error.
- * @returns The operation's result, when it settles in time.
- */
-async function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  let timer!: NodeJS.Timeout
-  const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(new MdocsError('RENDER_TIMEOUT', message)), ms)
-  })
-  try {
-    return await Promise.race([promise, timeout])
-  } finally {
-    clearTimeout(timer)
-  }
 }
 
 // dmd has no "quiet" option and warns via the process-wide `console.warn`.

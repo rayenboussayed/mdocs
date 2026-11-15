@@ -53,8 +53,14 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 
 ## Repo state / release gotchas
 
-- **Not a git repository; no CI.** Local `npm test` / `npm run check` is the only gate — do not claim anything is verified without running them. husky hooks (`pre-commit` = `npm run check`, `commit-msg` = commitlint) activate only once this becomes a git repo; `prepare` uses `husky || true` so installs never fail outside git.
+- **Git repository; no CI.** Local `npm test` / `npm run check` is the only gate — do not claim anything is verified without running them. husky hooks are live (`pre-commit` = `npm run check`, `commit-msg` = commitlint); `prepare` uses `husky || true` so installs never fail outside git.
 - The npm name `mdocs` is taken/deprecated/unclaimable; `mdocs-cli` was verified free but not yet decided. LICENSE says "the mdocs contributors". No `repository`/`bugs` in `package.json` yet. Name/LICENSE/repository decisions block publishing.
-- `typescript` is a **runtime** dependency (the TS checker is used on every run); `jsdoc-api` is not a dependency — it arrives via `jsdoc-to-markdown`.
+- `typescript` is a **runtime** dependency (the TS checker is used on every run); `jutilities`
+  is one too, imported via subpaths only (`jutilities/hof/*`, `jutilities/node/fs/dir`, `jutilities/to`),
+  never the root — it is ESM-only with no barrel, and `hof/cache` (ExpiredMap singleton) must
+  never be imported. `jsdoc-api` is not a dependency — it arrives via `jsdoc-to-markdown`.
+  Key helpers stay local on purpose: `withWarnSunk` (serializes the `console.warn` patch through
+  a promise gate), `walkFiles` (dotfile/`node_modules` ignore rules, unreadable directories noted
+  and skipped), `mapPool` (order-preserving, abort-on-first-throw).
 - `mdocs.config.js` is executable code run in-process (like vite's) — keep that trust model in mind for config-related changes; never add JSDoc_PATH-style relocations or network access.
 - 100% coverage claims are only meaningful under `npm test` (build + run). Deleting `test/*.test.ts` stubs is blocked — they are excluded, not fixed.

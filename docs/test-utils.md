@@ -7,7 +7,8 @@ assertions. Re-throws the original error untouched when it is not an
 <code>MdocsError</code>, so unexpected failure modes stay loud.</p>
 </dd>
 <dt><a href="#mkdirp">mkdirp(path)</a> ⇒ <code>Promise&lt;void&gt;</code></dt>
-<dd><p><code>mkdir</code> with <code>recursive: true</code> always (tests only create fixture trees).</p>
+<dd><p><code>mkdir</code> with <code>recursive: true</code> always (tests only create fixture trees) —
+delegated to jutilities&#39; <code>ensureDirectory</code>.</p>
 </dd>
 <dt><a href="#readUtf8">readUtf8(path)</a> ⇒ <code>Promise&lt;string&gt;</code></dt>
 <dd><p><code>readFile</code> pinned to utf8.</p>
@@ -31,12 +32,13 @@ assertions. Re-throws the original error untouched when it is not an
 | --- | --- | --- |
 | fn | <code>() &#x3D;&gt; unknown</code> | The function expected to throw an `MdocsError`. |
 
-src: src/test-utils.ts:16  
-dist: dist/test-utils.js:14 (approx.)
+src: src/test-utils.ts:17  
+dist: dist/test-utils.js:15 (approx.)
 <a name="mkdirp"></a>
 
 ## mkdirp(path) ⇒ <code>Promise&lt;void&gt;</code>
-`mkdir` with `recursive: true` always (tests only create fixture trees).
+`mkdir` with `recursive: true` always (tests only create fixture trees) —
+delegated to jutilities' `ensureDirectory`.
 
 **Kind**: global function  
 **Returns**: <code>Promise&lt;void&gt;</code> - Nothing.  
@@ -45,8 +47,8 @@ dist: dist/test-utils.js:14 (approx.)
 | --- | --- | --- |
 | path | <code>string</code> | The directory to create. |
 
-src: src/test-utils.ts:31  
-dist: dist/test-utils.js:30 (approx.)
+src: src/test-utils.ts:33  
+dist: dist/test-utils.js:32 (approx.)
 <a name="readUtf8"></a>
 
 ## readUtf8(path) ⇒ <code>Promise&lt;string&gt;</code>
@@ -59,8 +61,8 @@ dist: dist/test-utils.js:30 (approx.)
 | --- | --- | --- |
 | path | <code>string</code> | The file to read. |
 
-src: src/test-utils.ts:41  
-dist: dist/test-utils.js:39 (approx.)
+src: src/test-utils.ts:42  
+dist: dist/test-utils.js:40 (approx.)
 <a name="writeUtf8"></a>
 
 ## writeUtf8(path, data) ⇒ <code>Promise&lt;void&gt;</code>
@@ -74,5 +76,5 @@ dist: dist/test-utils.js:39 (approx.)
 | path | <code>string</code> | The file to write. |
 | data | <code>string</code> | The utf8 content to write. |
 
-src: src/test-utils.ts:52  
-dist: dist/test-utils.js:49 (approx.)
+src: src/test-utils.ts:53  
+dist: dist/test-utils.js:50 (approx.)

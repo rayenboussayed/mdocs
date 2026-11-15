@@ -16,6 +16,7 @@
  * (like every vite/webpack config). Only run `mdocs` on projects you trust.
  * There is intentionally no sandboxing and no network access in the loader.
  */
+import { toArray } from 'jutilities/to'
 import { randomBytes } from 'node:crypto'
 import { constants as fsConstants } from 'node:fs'
 import { readFileSync } from 'node:fs'
@@ -136,7 +137,7 @@ export function resolveConfig(raw: unknown): ResolvedMdocsConfig {
     outDirName: input.outDirName ?? DEFAULT_CONFIG.outDirName,
     parallelism: resolveParallelism(input.parallelism),
     rootDistDir: input.rootDistDir ?? DEFAULT_CONFIG.rootDistDir,
-    rootSrcDir: normalizeRootSrcDir(input.rootSrcDir),
+    rootSrcDir: input.rootSrcDir === undefined ? [...DEFAULT_CONFIG.rootSrcDir] : toArray(input.rootSrcDir),
   })
 }
 
@@ -355,16 +356,6 @@ function nearestPackageType(filePath: string): 'commonjs' | 'module' | undefined
       dir = parent
     }
   }
-}
-
-/**
- * Normalizes `rootSrcDir` to an array, applying the default when unset.
- * @param value - The user-facing `rootSrcDir` (string, array, or unset).
- * @returns The normalized array of roots.
- */
-function normalizeRootSrcDir(value: string | string[] | undefined): string[] {
-  if (value === undefined) return [...DEFAULT_CONFIG.rootSrcDir]
-  return Array.isArray(value) ? value : [value]
 }
 
 /**

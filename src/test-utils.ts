@@ -2,7 +2,8 @@
  * Test-only helpers (excluded from the published build via
  * tsconfig and from public API by living outside `index.ts`).
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { ensureDirectory } from 'jutilities/node/fs/dir'
+import { readFile, writeFile } from 'node:fs/promises'
 
 import { isMdocsError, type MdocsError } from './errors.js'
 
@@ -24,13 +25,13 @@ export async function expectMdocsError(fn: () => unknown): Promise<MdocsError> {
 }
 
 /**
- * `mkdir` with `recursive: true` always (tests only create fixture trees).
+ * `mkdir` with `recursive: true` always (tests only create fixture trees) —
+ * delegated to jutilities' `ensureDirectory`.
  * @param path - The directory to create.
  * @returns Nothing.
  */
 export async function mkdirp(path: string): Promise<void> {
-  // eslint-disable-next-line security/detect-non-literal-fs-filename -- tests run inside mkdtemp fixture dirs; paths never escape them
-  await mkdir(path, { recursive: true })
+  await ensureDirectory({ directory: path })
 }
 
 /**

@@ -48,15 +48,6 @@ referring to a different source (stale build, foreign map).</p>
 <dt><a href="#noteOnce">noteOnce(issues, issue)</a></dt>
 <dd><p>Adds an issue once per file.</p>
 </dd>
-<dt><a href="#withRetryOnce">withRetryOnce(fn)</a> ⇒ <code>Promise&lt;T&gt;</code></dt>
-<dd><p>Retries an async operation exactly once. jsdoc&#39;s child process resolves on
-<code>exit</code> (not <code>close</code>), so stdout can rarely be undelivered before the parent
-settles — one retry absorbs the race without hiding deterministic failures.</p>
-</dd>
-<dt><a href="#withTimeout">withTimeout(promise, ms, message)</a> ⇒ <code>Promise&lt;T&gt;</code></dt>
-<dd><p>Races <code>promise</code> against a hard timeout, rejecting with <code>MdocsError(&#39;RENDER_TIMEOUT&#39;)</code>
-so a hung jsdoc child surfaces as a per-file error instead of stalling the pool.</p>
-</dd>
 <dt><a href="#withWarnSunk">withWarnSunk(fn)</a> ⇒ <code>Promise&lt;T&gt;</code></dt>
 <dd><p>Runs <code>fn</code> with <code>console.warn</code> silenced; the patch is never re-entered concurrently.</p>
 </dd>
@@ -68,16 +59,16 @@ so a hung jsdoc child surfaces as a per-file error instead of stalling the pool.
 The two handlebars partials injected into dmd.
 
 **Kind**: global constant  
-src: src/render.ts:65  
-dist: dist/render.js:37
+src: src/render.ts:68  
+dist: dist/render.js:40
 <a name="DIST_EXTENSION"></a>
 
 ## DIST\_EXTENSION
 Dist extensions that differ from `source.slice(1)` (everything else strips the dot).
 
 **Kind**: global constant  
-src: src/render.ts:342  
-dist: dist/render.js:265
+src: src/render.ts:354  
+dist: dist/render.js:280
 <a name="renderSourceFile"></a>
 
 ## renderSourceFile(job, deps) ⇒ <code>Promise&lt;RenderFileResult&gt;</code>
@@ -97,8 +88,8 @@ Renders one source file into markdown (or reports why it could not).
 | deps.pointerBase |  | Absolute base for cwd-relative `src:`/`dist:` pointers. |
 | deps.timeoutMs |  | jsdoc render timeout in milliseconds. |
 
-src: src/render.ts:94  
-dist: dist/render.js:60
+src: src/render.ts:97  
+dist: dist/render.js:63
 <a name="writeTemplatePartials"></a>
 
 ## writeTemplatePartials(scratchDir) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -111,8 +102,8 @@ Writes the two injected partials into the run's scratch directory.
 | --- | --- | --- |
 | scratchDir | <code>string</code> | Scratch directory that will hold `partials/`. |
 
-src: src/render.ts:180  
-dist: dist/render.js:117
+src: src/render.ts:194  
+dist: dist/render.js:134
 <a name="computePointers"></a>
 
 ## computePointers(file, data, transpileMapper, issues, pointerBase) ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code>
@@ -129,8 +120,8 @@ Computes the per-doclet src/dist pointer map, keyed by generated line
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 | pointerBase | <code>string</code> | Absolute base for cwd-relative `src:`/`dist:` pointers. |
 
-src: src/render.ts:202  
-dist: dist/render.js:138
+src: src/render.ts:215  
+dist: dist/render.js:154
 <a name="pointerPath"></a>
 
 ## pointerPath(base, absPath) ⇒ <code>string</code>
@@ -144,8 +135,8 @@ Renders an absolute path relative to the workspace root, posix-style.
 | base | <code>string</code> | The absolute base the returned path is relative to. |
 | absPath | <code>string</code> | The absolute path to render. |
 
-src: src/render.ts:234  
-dist: dist/render.js:163
+src: src/render.ts:247  
+dist: dist/render.js:179
 <a name="prepareForJsdoc"></a>
 
 ## prepareForJsdoc(file, srcText, scratchDir) ⇒ <code>Promise&lt;PreparedFile&gt;</code>
@@ -160,8 +151,8 @@ Transpiles (.ts family) or copies (.js family) the source for jsdoc.
 | srcText | <code>string</code> | The source text. |
 | scratchDir | <code>string</code> | Per-file scratch directory to write into. |
 
-src: src/render.ts:245  
-dist: dist/render.js:173
+src: src/render.ts:258  
+dist: dist/render.js:189
 <a name="resolveDistPointer"></a>
 
 ## resolveDistPointer(srcLine, transpileMapper, dist, issues) ⇒ <code>string</code>
@@ -179,8 +170,8 @@ lookup misses, one "dist sourcemap missing or unmatched" note is recorded
 | dist | <code>DistPointerContext</code> | Dist lookup context (kind, mapper, pointer path) computed once per file. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:312  
-dist: dist/render.js:241
+src: src/render.ts:324  
+dist: dist/render.js:256
 <a name="resolveSrcLine"></a>
 
 ## resolveSrcLine(generatedLine, transpileMapper) ⇒ <code>{ srcApprox: boolean; srcLine: number; }</code>
@@ -194,8 +185,8 @@ Maps a doclet's generated line back to the original source line.
 | generatedLine | <code>number</code> | The jsdoc-reported line in the generated file. |
 | transpileMapper | <code>SourceLineMapper</code> | Mapper from the transpile emit, or `null` for pass-through copies. |
 
-src: src/render.ts:331  
-dist: dist/render.js:256
+src: src/render.ts:343  
+dist: dist/render.js:271
 <a name="distJsPathFor"></a>
 
 ## distJsPathFor(file) ⇒ <code>string</code>
@@ -208,8 +199,8 @@ dist `.js` path for a source file: sibling rootDistDir, same relative path.
 | --- | --- | --- |
 | file | <code>SourceFile</code> | The source file whose dist counterpart is wanted. |
 
-src: src/render.ts:372  
-dist: dist/render.js:276
+src: src/render.ts:384  
+dist: dist/render.js:291
 <a name="distMapperFor"></a>
 
 ## distMapperFor(distJs, srcAbsPath, issues) ⇒ <code>Promise&lt;DistMapperResult&gt;</code>
@@ -225,8 +216,8 @@ referring to a different source (stale build, foreign map).
 | srcAbsPath | <code>string</code> | Absolute path of the original source file the map must reference. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:386  
-dist: dist/render.js:289
+src: src/render.ts:398  
+dist: dist/render.js:304
 <a name="fail"></a>
 
 ## fail(file, outPath, message, issues) ⇒ <code>RenderFileResult</code>
@@ -242,8 +233,8 @@ Builds the failure result shape.
 | message | <code>string</code> | Why the render failed. |
 | issues | <code>string[]</code> | Notes collected before the failure. |
 
-src: src/render.ts:411  
-dist: dist/render.js:309
+src: src/render.ts:423  
+dist: dist/render.js:324
 <a name="noteOnce"></a>
 
 ## noteOnce(issues, issue)
@@ -256,41 +247,8 @@ Adds an issue once per file.
 | issues | <code>string[]</code> | The per-file notes accumulator (deduplicated in place). |
 | issue | <code>string</code> | The note to add. |
 
-src: src/render.ts:420  
-dist: dist/render.js:317
-<a name="withRetryOnce"></a>
-
-## withRetryOnce(fn) ⇒ <code>Promise&lt;T&gt;</code>
-Retries an async operation exactly once. jsdoc's child process resolves on
-`exit` (not `close`), so stdout can rarely be undelivered before the parent
-settles — one retry absorbs the race without hiding deterministic failures.
-
-**Kind**: global function  
-**Returns**: <code>Promise&lt;T&gt;</code> - The operation's result (first or second attempt).  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>() &#x3D;&gt; Promise&lt;T&gt;</code> | The operation to retry. |
-
-src: src/render.ts:431  
-dist: dist/render.js:328
-<a name="withTimeout"></a>
-
-## withTimeout(promise, ms, message) ⇒ <code>Promise&lt;T&gt;</code>
-Races `promise` against a hard timeout, rejecting with `MdocsError('RENDER_TIMEOUT')`
-so a hung jsdoc child surfaces as a per-file error instead of stalling the pool.
-
-**Kind**: global function  
-**Returns**: <code>Promise&lt;T&gt;</code> - The operation's result, when it settles in time.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| promise | <code>Promise&lt;T&gt;</code> | The operation to bound. |
-| ms | <code>number</code> | Milliseconds before the race rejects. |
-| message | <code>string</code> | The message carried by the RENDER_TIMEOUT error. |
-
-src: src/render.ts:447  
-dist: dist/render.js:344
+src: src/render.ts:432  
+dist: dist/render.js:332
 <a name="withWarnSunk"></a>
 
 ## withWarnSunk(fn) ⇒ <code>Promise&lt;T&gt;</code>
@@ -303,5 +261,5 @@ Runs `fn` with `console.warn` silenced; the patch is never re-entered concurrent
 | --- | --- | --- |
 | fn | <code>() &#x3D;&gt; Promise&lt;T&gt;</code> | The operation whose warnings are sunk. |
 
-src: src/render.ts:470  
-dist: dist/render.js:366
+src: src/render.ts:447  
+dist: dist/render.js:346
