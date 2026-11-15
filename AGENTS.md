@@ -13,7 +13,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - `npm run typecheck` — `tsc -p tsconfig.test.json` (checks src **including** colocated tests, plus test/e2e — `tsconfig.json` alone excludes them).
 - `npm run build` — `tsc -p tsconfig.json` → `dist/`. `npm test` builds before its e2e tests spawn `dist/cli.js`; a stale `dist/` tests the wrong binary.
 - `npm run clean` — removes `dist/` and `.test-dist/`. `prepack` = clean + build; `prepublishOnly` = clean + check.
-- No `npm run docs` — dogfooding is `node dist/cli.js` from the repo root (writes `docs/`, which is gitignored generated output).
+- No `npm run docs` — dogfooding is `node dist/cli.js` from the repo root (writes `docs/`, which is tracked generated output).
 - Focused tests: `npx vitest run -t '<name>'`. The 100% gate only holds under `npm test`.
 - `npm run bench` — latency benchmarks (vitest bench, informational, not gated). `npm run bench:memory` — memory scenarios with printed report; corpus: `MDOCS_BENCH_FILES` (default 120).
 
@@ -24,7 +24,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - E2E tests live in `test/e2e/`; they copy `test/fixtures/*` to `mkdtemp` (never touch fixtures in place) and call `run()` / spawn `dist/cli.js`.
 - `test/*.test.ts` top-level files are inert `export {}` "moved to …" stubs; `test/fixtures/**` contains intentionally broken sample inputs — both are excluded from lint and from vitest. They do nothing — leave them, deletions are blocked.
 - `src/test-utils.ts` is test-only (`expectMdocsError` + `writeUtf8`/`readUtf8`/`mkdirp`), excluded from build and coverage. fs paths in tests go through these wrappers, which carry the one justified inline eslint-disable each.
-- `docs/` is generated dogfood output (gitignored), not hand-maintained. Regenerate after any `src/` edit with pointer drift (`node dist/cli.js`).
+- `docs/` is generated dogfood output, tracked in git, not hand-maintained. Regenerate after any `src/` edit with pointer drift and commit the result alongside the edit (`node dist/cli.js`).
 
 ## Non-obvious pipeline facts
 
