@@ -488,8 +488,6 @@ export class UserRepository {
 
 **Caching.** mdocs keeps a **render cache** enabled by default: it stores per-file results in a single content-addressed JSON file at `<cwd>/.mdocscache` (configurable with `cachePath`, disableable with `cache: false` or `mdocs --no-cache`). Two tiers are kept — the raw template data returned by jsdoc-to-markdown (skips the jsdoc child process), and the finished markdown (skips everything, including the TypeScript program). Cache keys are content fingerprints (source text, the whole TS program for `.ts` files, the `dist` map, and the toolchain version), never absolute paths, and the cache never contains output for files that failed to render. The jsdoc analysis cache itself is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files.
 
-**Caching.** The jsdoc analysis cache is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files. The mdocs render cache is separate and lives at `<cwd>/.mdocscache` — see the FAQ and the config table.
-
 **Output is overwritten, not merged.** Each run regenerates the affected `*.md` files. Files in the output folder that mdocs did not generate are left alone.
 
 **Which files are picked up.** `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`. Declaration files (`.d.ts`, `.d.mts`, `.d.cts`) and anything inside `node_modules`, `.git`, `.hg` or `.svn` are skipped. Directory symlinks are not followed.
@@ -507,7 +505,7 @@ export class UserRepository {
 
 **Does mdocs run my build?** No. It only reads `dist/` if it is already there.
 
-**Can I commit the `.mdocscache` file?** No. It is a local build artifact — its contents are valid only for the checkout that produced them (content fingerprints are cwd-sensitive), it is recreated automatically on every run, and it would bloat every pull request. Add `.mdocscache` to your `.gitignore`. Deleting it at any time is entirely safe — the next run simply re-renders everything.
+**Can I commit the `.mdocscache` file?** Yes — this repository does. It is a checked-in convenience for warm CI runs on an unchanged tree (keys are cwd-relative and fingerprinted over contents, so any clone with the same layout hits it). Cost: it is ~200 KB and churns each time the source or the toolchain changes, which is most commits that regenerate it — remember to regenerate it with `node dist/cli.js` after touching anything that affects output. It is always safe to delete; the next run simply rebuilds it.
 
 **Can I commit the generated docs?** Yes — that is the normal workflow. Add `docs/` to `.gitignore` if you would rather publish them from CI.
 

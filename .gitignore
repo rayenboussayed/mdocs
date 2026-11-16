@@ -9,6 +9,5 @@ dist/
 .eslintcache
 coverage/
 
-# mdocs render cache
-.mdocscache
+# mdocs render cache write artifacts
 .mdocscache.tmp-*
