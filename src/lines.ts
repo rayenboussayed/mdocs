@@ -7,7 +7,7 @@
  * - the map of our own in-memory `ts.transpileModule` emit (exact, and the
  *   only map available when the project was not built yet), and
  * - the committed `*.js.map` sitting next to the user's `dist/*.js` (the
- *   reader pointer mdocs advertises in the docs).
+ *   reader pointer mdaics advertises in the docs).
  *
  * All line numbers are 1-based throughout the public API. Mapping failures
  * never throw — they yield `null`, and callers fall back to an `(approx.)`

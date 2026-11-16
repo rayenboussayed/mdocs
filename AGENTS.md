@@ -1,4 +1,4 @@
-# AGENTS.md — mdocs
+# AGENTS.md — mdaics
 
 Vite-style CLI + library around `jsdoc-to-markdown`: one `.md` API doc per source
 file, with `src:`/`dist:` line pointers and TS-checker-resolved parameter types.
@@ -15,7 +15,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - `npm run clean` — removes `dist/` and `.test-dist/`. `prepack` = clean + build; `prepublishOnly` = clean + check.
 - No `npm run docs` — dogfooding is `node dist/cli.js` from the repo root (writes `docs/`, which is tracked generated output).
 - Focused tests: `npx vitest run -t '<name>'`. The 100% gate only holds under `npm test`.
-- `npm run bench` — latency benchmarks (vitest bench, informational, not gated). `npm run bench:memory` — memory scenarios with printed report; corpus: `MDOCS_BENCH_FILES` (default 120).
+- `npm run bench` — latency benchmarks (vitest bench, informational, not gated). `npm run bench:memory` — memory scenarios with printed report; corpus: `MDAICS_BENCH_FILES` (default 120).
 
 ## Layout
 
@@ -23,7 +23,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - Unit tests are colocated: `src/<name>.test.ts` (vitest).
 - E2E tests live in `test/e2e/`; they copy `test/fixtures/*` to `mkdtemp` (never touch fixtures in place) and call `run()` / spawn `dist/cli.js`.
 - `test/*.test.ts` top-level files are inert `export {}` "moved to …" stubs; `test/fixtures/**` contains intentionally broken sample inputs — both are excluded from lint and from vitest. They do nothing — leave them, deletions are blocked.
-- `src/test-utils.ts` is test-only (`expectMdocsError` + `writeUtf8`/`readUtf8`/`mkdirp`), excluded from build and coverage. fs paths in tests go through these wrappers, which carry the one justified inline eslint-disable each.
+- `src/test-utils.ts` is test-only (`expectMdaicsError` + `writeUtf8`/`readUtf8`/`mkdirp`), excluded from build and coverage. fs paths in tests go through these wrappers, which carry the one justified inline eslint-disable each.
 - `docs/` is generated dogfood output, tracked in git, not hand-maintained. Regenerate after any `src/` edit with pointer drift and commit the result alongside the edit (`node dist/cli.js`).
 
 ## Non-obvious pipeline facts
@@ -37,11 +37,11 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 - Validation is centralized in `src/schema.ts` (zod, `strictObject`) — the single trust boundary for config, `process.env` and the on-disk cache. **Do not re-add redundant guards** in `run.ts`/`render.ts`/`resolve.ts`/`pool.ts`/`cache.ts`; earlier defensive re-checks were removed on purpose.
 - Unreachable-by-design code is allowed but must carry a justified `/* v8 ignore ... */` comment; never weaken the 100% thresholds in `vitest.config.ts`.
 - `console.warn` is swallowed only inside the dmd render section, which is serialized through a promise gate (`withWarnSunk`) — pool workers must not race the patch. Other dmd warnings (`getTemplateData`) are NOT sunk.
-- `run()` deletes `JSDOC_PATH` from `process.env`; env access goes through `parseProcessEnv` only (invalid values silently fall back to defaults — `NODE_ENV` selects the function-form config's `mode`, `MDOCS_DEBUG=1` enables stack traces, `NO_COLOR` is accepted but unused).
+- `run()` deletes `JSDOC_PATH` from `process.env`; env access goes through `parseProcessEnv` only (invalid values silently fall back to defaults — `NODE_ENV` selects the function-form config's `mode`, `MDAICS_DEBUG=1` enables stack traces, `NO_COLOR` is accepted but unused).
 - `dist:` pointers are exact only when the committed `.js.map` matches the source; otherwise `(approx.)` — except when the dist file itself is missing, in which case the `dist:` line is omitted (one per-file note), and when the whole dist folder is missing, in which case every project emits no `dist:` lines (one stderr warning + one `(dist)` issue per project). Sibling `.map` reads are capped at 16 MB; inline maps are read from the last 64 KB only.
 - tsconfig is stricter than defaults: `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noUnusedLocals/Parameters`, `verbatimModuleSyntax`, `nodenext`.
 - Config load errors are wrapped in `CONFIG_LOAD_FAILED` in `loadConfig` (one choke point); loader details live in `importConfigModule`/`importEsmInCommonJsPackage`.
-- `cache` (default `true`) and `cachePath` (default `.mdocscache`) drive the mdocs-owned, content-addressed render cache. It is a local speedup and it is committed in this repo (warm CI on an unchanged tree); `.gitignore` excludes only `.mdocscache.tmp-*` write artifacts. Two tiers: the raw `getTemplateData()` output (skips the jsdoc child) and the finished markdown (skips everything, including the TS program). `--no-cache` disables it for one run; `cache: false` disables it in config. Regenerate it with `node dist/cli.js` — it churns whenever output-affecting inputs change.
+- `cache` (default `true`) and `cachePath` (default `.mdaicscache`) drive the mdaics-owned, content-addressed render cache. It is a local speedup and it is committed in this repo (warm CI on an unchanged tree); `.gitignore` excludes only `.mdaicscache.tmp-*` write artifacts. Two tiers: the raw `getTemplateData()` output (skips the jsdoc child) and the finished markdown (skips everything, including the TS program). `--no-cache` disables it for one run; `cache: false` disables it in config. Regenerate it with `node dist/cli.js` — it churns whenever output-affecting inputs change.
 - The cache is read at run start and written once at run end (tmp file + atomic rename, mode `0600`). Corrupt or unreadable files are a miss, never a hard error. Cache keys are cwd-relative posix paths; content fingerprints cover source text + TS program + dist map + toolchain versions.
 
 ## Lint & doc style
@@ -56,8 +56,8 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 ## Repo state / release gotchas
 
 - **Git repository; no CI.** Local `npm test` / `npm run check` is the only gate — do not claim anything is verified without running them. husky hooks are live (`pre-commit` = `npm run check`, `commit-msg` = commitlint); `prepare` uses `husky || true` so installs never fail outside git.
-- **Publishing is governed by `.npmignore`, not a `files` field** (deliberate design decision, see the commit that introduced it). Any root-level file added later **ships in the tarball** unless it is excluded in `.npmignore` — always verify with `npm pack --dry-run` after adding root-level files. `docs/`, `.mdocscache`, `coverage/`, `src/`, `test/` are all excluded on purpose; re-check they stay excluded.
-- The npm name `mdocs` is taken/deprecated/unclaimable; `mdocs-cli` was verified free but not yet decided. LICENSE says "the mdocs contributors". No `repository`/`bugs` in `package.json` yet. Name/LICENSE/repository decisions block publishing.
+- **Publishing is governed by `.npmignore`, not a `files` field** (deliberate design decision, see the commit that introduced it). Any root-level file added later **ships in the tarball** unless it is excluded in `.npmignore` — always verify with `npm pack --dry-run` after adding root-level files. `docs/`, `.mdaicscache`, `coverage/`, `src/`, `test/` are all excluded on purpose; re-check they stay excluded.
+- The package is named `mdaics` (npm-verified free). The earlier name `mdocs` is permanently held by npm's deprecation holder; `mdaics` is the rename target. LICENSE says "the mdaics contributors". No `repository`/`bugs` in `package.json` yet. Name/LICENSE/repository decisions block publishing.
 - `typescript` is a **runtime** dependency (the TS checker is used on every run); `jutilities`
   is one too, imported via subpaths only (`jutilities/hof/*`, `jutilities/node/fs/dir`, `jutilities/to`),
   never the root — it is ESM-only with no barrel, and `hof/cache` (ExpiredMap singleton) must
@@ -65,6 +65,6 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
   Key helpers stay local on purpose: `withWarnSunk` (serializes the `console.warn` patch through
   a promise gate), `walkFiles` (dotfile/`node_modules` ignore rules, unreadable directories noted
   and skipped), `mapPool` (order-preserving, abort-on-first-throw).
-- `mdocs.config.js` is executable code run in-process (like vite's) — keep that trust model in mind for config-related changes; never add JSDoc_PATH-style relocations or network access.
+- `mdaics.config.js` is executable code run in-process (like vite's) — keep that trust model in mind for config-related changes; never add JSDoc_PATH-style relocations or network access.
 - Update `CHANGELOG.md` in the same change as any user-visible change (new flags/config/keys, output or pointer-format changes, dependency or Node-requirement changes). One `## [x.y.z] - YYYY-MM-DD` section per release (Keep a Changelog format); cut releases with `npm version`.
 - 100% coverage claims are only meaningful under `npm test` (build + run). Deleting `test/*.test.ts` stubs is blocked — they are excluded, not fixed.

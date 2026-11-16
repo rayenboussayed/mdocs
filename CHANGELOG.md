@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Vite-style CLI and library (`mdocs`, ESM, Node.js ≥ 22.17) around
+- Vite-style CLI and library (`mdaics`, ESM, Node.js ≥ 22.17) around
   [`jsdoc-to-markdown`](https://www.npmjs.com/package/jsdoc-to-markdown): one
   `.md` API doc per source file, generated from JSDoc — not one giant document.
 - Every documented symbol carries a `src:` pointer (source line, relative to
@@ -19,13 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   API (a snapshot of the truth at generation time); `.js` types come from the
   JSDoc annotations. Interfaces and type aliases are erased at compile time
   and are not documented.
-- Vite-style `mdocs.config.js` (ESM, CommonJS or function config), validated
+- Vite-style `mdaics.config.js` (ESM, CommonJS or function config), validated
   with zod at the trust boundary — config, `process.env` and the on-disk
   cache. Unknown keys are rejected; `--config <path>` selects a different
   file. `--dry-run`, `--verbose`, `--parallelism` and `--no-cache` flags.
 - Monorepo support via glob roots (`rootSrcDir: 'packages/*/src'`); each match
   gets its own `docs/` folder.
-- Two-tier, content-addressed render cache at `<cwd>/.mdocscache` (on by
+- Two-tier, content-addressed render cache at `<cwd>/.mdaicscache` (on by
   default; `cache: false` or `--no-cache` disables it; `cachePath`
   relocates it). Tier 1 caches finished markdown and skips everything
   including the TypeScript program; tier 2 caches raw jsdoc template data

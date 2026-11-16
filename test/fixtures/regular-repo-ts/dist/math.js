@@ -26,7 +26,7 @@ export function clamp(value, min = 0, max = 100) {
 export function first(items) {
     return items[0];
 }
-// Internal helper: exported (so mdocs sees it) but intentionally
+// Internal helper: exported (so mdaics sees it) but intentionally
 // left without JSDoc to test graceful skip of undocumented symbols.
 export function double(n) {
     return n * 2;

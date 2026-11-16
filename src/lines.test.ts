@@ -57,7 +57,7 @@ test('readFileSourceMap: reads sibling maps, reports missing dist and missing ma
 test('createLineMapper: src and dist lines never collapse for CRLF-shaped sources', async () => {
   // The fixture source has LF endings; exercise the API boundary instead:
   // line 1 maps to line 1 when nothing was removed, and never returns line 0.
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-lines-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-lines-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await cp(regularTs, join(dir, 'proj'), { recursive: true })
   const src = join(dir, 'proj', 'src', 'math.ts')
@@ -136,7 +136,7 @@ test('createLineMapper: non-integer lines are rejected', () => {
 })
 
 test('readFileSourceMap: inline maps are read from the tail of the .js file', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-inline-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-inline-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const map = {
     file: 'inline.js',
@@ -156,7 +156,7 @@ test('readFileSourceMap: inline maps are read from the tail of the .js file', as
 })
 
 test('readFileSourceMap: a sibling directory named .js.map reports missing map', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-notmap-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-notmap-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'x.js.map'))
   await writeUtf8(join(dir, 'x.js'), 'const x = 1\n')
@@ -165,7 +165,7 @@ test('readFileSourceMap: a sibling directory named .js.map reports missing map',
 })
 
 test('readFileSourceMap: a plain .js file without any map reports missing map', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-nomap-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-nomap-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'plain.js'), 'const x = 1\n')
   const result = await readFileSourceMap(join(dir, 'plain.js'))
@@ -173,7 +173,7 @@ test('readFileSourceMap: a plain .js file without any map reports missing map', 
 })
 
 test('readFileSourceMap: a sibling map larger than the cap is treated as unusable', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-bigmap-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-bigmap-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const js = join(dir, 'math.js')
   // 17 MB of 'x' — comfortably past MAX_MAP_BYTES without committing a huge fixture.
@@ -184,7 +184,7 @@ test('readFileSourceMap: a sibling map larger than the cap is treated as unusabl
 })
 
 test('readFileSourceMap: an inline comment with an empty payload reports no usable map', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-emptymap-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-emptymap-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const js = join(dir, 'inline.js')
   await writeUtf8(js, 'export const x = 1\n//# sourceMappingURL=data:application/json;base64,\n')
@@ -193,7 +193,7 @@ test('readFileSourceMap: an inline comment with an empty payload reports no usab
 })
 
 test('readFileSourceMap: a sourceMappingURL with no trailing base64 payload reports no usable map', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-nopayload-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-nopayload-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const js = join(dir, 'inline.js')
   await writeUtf8(js, 'const dataUri = "data:base64,literal-string-containing-base64-comma"\n//# sourceMappingURL=data:application/json\n')

@@ -1,6 +1,6 @@
 # Benchmark suite
 
-Informational latency and memory benchmarks for mdocs's hot paths. They exist so a
+Informational latency and memory benchmarks for mdaics's hot paths. They exist so a
 human comparing two runs on the same machine can see regressions in the
 resolve → tscheck → render pipeline. They are **not** part of `npm test`,
 `npm run check`, or the coverage gate, and they never assert a timing or memory
@@ -15,7 +15,7 @@ npm run bench          # latency benchmarks (tinybench via `vitest bench`, verbo
 npm run bench:memory   # memory scenarios (sets NODE_OPTIONS=--expose-gc so heap numbers mean something)
 ```
 
-Both print an environment fingerprint (node, platform/arch, CPU model/count, `NODE_OPTIONS`, `MDOCS_BENCH_FILES`) as the first line — always read it before the table. `npm run bench` accepts a filter: `npm run bench -- lookupSymbol`. `bench:memory` prints the fingerprint, a worker-floor line, a results table (`scenario | rssΔ MB | heapΔ MB | maxRSS@end MB | dur s`) and a caveats footer.
+Both print an environment fingerprint (node, platform/arch, CPU model/count, `NODE_OPTIONS`, `MDAICS_BENCH_FILES`) as the first line — always read it before the table. `npm run bench` accepts a filter: `npm run bench -- lookupSymbol`. `bench:memory` prints the fingerprint, a worker-floor line, a results table (`scenario | rssΔ MB | heapΔ MB | maxRSS@end MB | dur s`) and a caveats footer.
 
 ## What is measured
 
@@ -60,13 +60,13 @@ Scenario C runs with `parallelism: 8`: at the default (all cores) jsdoc grandchi
 
 ## The synthetic corpus
 
-Both suites generate a deterministic (no randomness), JSDoc-heavy TypeScript corpus into a `mkdtemp` directory under `<tmpdir>/mdocs-bench-*` (mode `0700`, files `0600`), with a `src/sample-NNNN.ts` layout, ~44 lines per file and ≈7 doclets each. It is torn down after every run — never committed, never dogfooded, and it contains no `mdocs.config.js` by design.
+Both suites generate a deterministic (no randomness), JSDoc-heavy TypeScript corpus into a `mkdtemp` directory under `<tmpdir>/mdaics-bench-*` (mode `0700`, files `0600`), with a `src/sample-NNNN.ts` layout, ~44 lines per file and ≈7 doclets each. It is torn down after every run — never committed, never dogfooded, and it contains no `mdaics.config.js` by design.
 
-Corpus size defaults to 120 files and is controlled by `MDOCS_BENCH_FILES`
+Corpus size defaults to 120 files and is controlled by `MDAICS_BENCH_FILES`
 (integer 1–1024):
 
 ```sh
-MDOCS_BENCH_FILES=24 npm run bench:memory
+MDAICS_BENCH_FILES=24 npm run bench:memory
 ```
 
 The corpus is regenerated automatically on every run; there is nothing to
@@ -76,7 +76,7 @@ regenerate by hand.
 
 | Variable | Effect |
 | --- | --- |
-| `MDOCS_BENCH_FILES` | Corpus size, integer 1–1024 (default 120). Invalid values throw `RangeError`. |
+| `MDAICS_BENCH_FILES` | Corpus size, integer 1–1024 (default 120). Invalid values throw `RangeError`. |
 | `NODE_OPTIONS=--expose-gc` | Required for meaningful heap numbers in `bench:memory` (the npm script sets it). Without it, `settle()` is a no-op yield. |
 
 ## Example output (reference machine only)

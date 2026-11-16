@@ -4,7 +4,7 @@
  *
  * jsdoc-parse already normalizes the noisy parts of `jsdoc -X` output (it
  * drops undocumented/package/file doclets, fixes constructor longnames, …),
- * so this module only adds what is specific to mdocs:
+ * so this module only adds what is specific to mdaics:
  *
  * - the per-symbol `src`/`dist` pointer injection (`injectPointers`),
  * - merging checker-derived TypeScript types into parameter/return entries
@@ -22,8 +22,8 @@ export interface DmdDoclet {
   id?: string
   kind?: string
   longname?: string
-  /** Injected by mdocs: `src` pointer, plus the `dist` pointer when a usable dist build exists. */
-  mdocs?: { dist?: string; src: string; }
+  /** Injected by mdaics: `src` pointer, plus the `dist` pointer when a usable dist build exists. */
+  mdaics?: { dist?: string; src: string; }
   memberof?: string
   meta?: {
     [field: string]: unknown
@@ -124,7 +124,7 @@ export function injectPointers(doclets: readonly DmdDoclet[], pointers: Readonly
     if (line === undefined) continue
     const pointer = pointers.get(line)
     if (pointer === undefined) continue
-    doclet.mdocs = pointer.dist === undefined ? { src: pointer.src } : { dist: pointer.dist, src: pointer.src }
+    doclet.mdaics = pointer.dist === undefined ? { src: pointer.src } : { dist: pointer.dist, src: pointer.src }
   }
 }
 

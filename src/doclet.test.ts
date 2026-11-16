@@ -37,22 +37,22 @@ test('injectPointers: a dist-less pointer attaches src only (no dist key)', () =
   ]
   const pointers = new Map([[10, { src: '/abs/src/math.ts:9' }]])
   injectPointers(data, pointers)
-  expect(data[0]?.mdocs).toEqual({ src: '/abs/src/math.ts:9' })
+  expect(data[0]?.mdaics).toEqual({ src: '/abs/src/math.ts:9' })
 })
 
-test('injectPointers: mdocs fields are attached by generated line', () => {
+test('injectPointers: mdaics fields are attached by generated line', () => {
   const data: DmdDoclet[] = [
     { kind: 'function', meta: { filename: 'file.js', lineno: 10, path: '/scratch/0' }, name: 'add' },
     { kind: 'constructor', memberof: 'Point', name: 'Point' }, // no meta — untouched
   ]
   const pointers = new Map([[10, { dist: '/abs/dist/math.js:8', src: '/abs/src/math.ts:9' }]])
   injectPointers(data, pointers)
-  expect(data[0]?.mdocs).toEqual({ dist: '/abs/dist/math.js:8', src: '/abs/src/math.ts:9' })
-  expect(data[1]?.mdocs).toBeUndefined()
+  expect(data[0]?.mdaics).toEqual({ dist: '/abs/dist/math.js:8', src: '/abs/src/math.ts:9' })
+  expect(data[1]?.mdaics).toBeUndefined()
 })
 
 test('injectCheckerTypes: .ts doclets get checker parameter and return types', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await cp(join(fixtures, 'regular-repo-ts'), join(dir, 'proj'), { recursive: true })
   const src = join(dir, 'proj', 'src', 'math.ts')
@@ -76,7 +76,7 @@ test('injectCheckerTypes: .ts doclets get checker parameter and return types', a
 })
 
 test('injectCheckerTypes: class constructor doclets get constructor parameter types', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await cp(join(fixtures, 'regular-repo-ts'), join(dir, 'proj'), { recursive: true })
   const src = join(dir, 'proj', 'src', 'geometry.ts')
@@ -99,7 +99,7 @@ test('injectCheckerTypes: class constructor doclets get constructor parameter ty
 })
 
 test('injectCheckerTypes: missing or ambiguous symbols are left untouched', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await cp(join(fixtures, 'regular-repo-ts'), join(dir, 'proj'), { recursive: true })
   const src = join(dir, 'proj', 'src', 'math.ts')
@@ -141,7 +141,7 @@ test('injectCheckerTypes: nameless doclets are skipped without crashing', () => 
 })
 
 test('injectCheckerTypes: doclet param without a name is skipped; checker any keeps the JSDoc type', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await cp(join(fixtures, 'regular-repo-ts'), join(dir, 'proj'), { recursive: true })
   const src = join(dir, 'proj', 'src', 'math.ts')
@@ -164,7 +164,7 @@ test('injectCheckerTypes: doclet param without a name is skipped; checker any ke
 })
 
 test('injectCheckerTypes: checker any keeps the JSDoc type for parameters', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'keep.ts')
   // Untyped TS parameter — checker resolves the implicit any; the JSDoc {string} must win.
@@ -179,7 +179,7 @@ test('injectCheckerTypes: checker any keeps the JSDoc type for parameters', asyn
 })
 
 test('injectCheckerTypes: return type from the checker wins when not any', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'ret.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'math.ts'), src)
@@ -194,7 +194,7 @@ test('injectCheckerTypes: return type from the checker wins when not any', async
 })
 
 test('injectCheckerTypes: memberof "module:" normalizes to null and falls back to name', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'mod.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'geometry.ts'), src)
@@ -208,7 +208,7 @@ test('injectCheckerTypes: memberof "module:" normalizes to null and falls back t
 })
 
 test('injectCheckerTypes: kind class is treated as the constructor signature source', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'cls.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'geometry.ts'), src)
@@ -222,7 +222,7 @@ test('injectCheckerTypes: kind class is treated as the constructor signature sou
 })
 
 test('injectCheckerTypes: missing returns doclet gains a returns entry when the checker has a type', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'retg.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'math.ts'), src)
@@ -236,7 +236,7 @@ test('injectCheckerTypes: missing returns doclet gains a returns entry when the 
 })
 
 test('injectCheckerTypes: class doclets without returns are not given one (skip cxor invariant)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'clsignore.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'geometry.ts'), src)
@@ -250,7 +250,7 @@ test('injectCheckerTypes: class doclets without returns are not given one (skip 
 })
 
 test('injectCheckerTypes: memberof dot-selector picks class members for class-level doclets', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'meth.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'geometry.ts'), src)
@@ -264,7 +264,7 @@ test('injectCheckerTypes: memberof dot-selector picks class members for class-le
 })
 
 test('injectCheckerTypes: memberof "." is treated as no class (injected nothing)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'dot.ts')
   await cp(join(fixtures, 'regular-repo-ts', 'src', 'geometry.ts'), src)
@@ -285,5 +285,5 @@ test('injectPointers: doclet with a line number absent from the pointer map gain
   ]
   const pointers = new Map([[1, { dist: '/abs/dist/a.js:1', src: '/abs/src/a.ts:1' }]])
   injectPointers(data, pointers)
-  expect(data[0]?.mdocs).toBeUndefined()
+  expect(data[0]?.mdaics).toBeUndefined()
 })

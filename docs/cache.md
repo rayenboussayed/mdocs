@@ -49,7 +49,7 @@ drifted from their lockfile (postinstall patches) can serve stale types.</p>
 </dd>
 <dt><a href="#toolchainFingerprint">toolchainFingerprint()</a> ⇒ <code>string</code></dt>
 <dd><p>Computes the cache fingerprint of the toolchain — everything about the
-installed mdocs + jsdoc + TypeScript that can shape the rendered output.</p>
+installed mdaics + jsdoc + TypeScript that can shape the rendered output.</p>
 </dd>
 <dt><a href="#evict">evict(entries, overflow)</a></dt>
 <dd><p>Drops the least-valuable entries until only <code>cap</code> remain.</p>
@@ -228,7 +228,7 @@ dist: dist/cache.js:215
 
 ## toolchainFingerprint() ⇒ <code>string</code>
 Computes the cache fingerprint of the toolchain — everything about the
-installed mdocs + jsdoc + TypeScript that can shape the rendered output.
+installed mdaics + jsdoc + TypeScript that can shape the rendered output.
 
 **Kind**: global function  
 **Returns**: <code>string</code> - A sha256 hex digest.  

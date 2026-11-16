@@ -9,7 +9,7 @@ import { expect, onTestFinished, test } from 'vitest'
 
 import { resolveConfig } from './config.js'
 import { collectSourceFiles, outputPathFor, probeMissingDistDirs, resolveProjects } from './resolve.js'
-import { expectMdocsError, mkdirp, writeUtf8 } from './test-utils.js'
+import { expectMdaicsError, mkdirp, writeUtf8 } from './test-utils.js'
 
 const fixtures = join(process.cwd(), 'test', 'fixtures')
 
@@ -19,7 +19,7 @@ const fixtures = join(process.cwd(), 'test', 'fixtures')
  * @returns The absolute path of the copied project.
  */
 async function tmpCopy(src: string): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-resolve-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-resolve-'))
   await cp(src, join(dir, 'proj'), { recursive: true })
   return join(dir, 'proj')
 }
@@ -66,16 +66,16 @@ test('resolveProjects: overlapping roots are rejected', async () => {
   const dir = await tmpCopy(join(fixtures, 'regular-repo-ts'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src', 'widgets'))
-  const error = await expectMdocsError(() => resolveProjects(resolveConfig({ rootSrcDir: ['src', 'src/widgets'] }), dir))
+  const error = await expectMdaicsError(() => resolveProjects(resolveConfig({ rootSrcDir: ['src', 'src/widgets'] }), dir))
   expect(error.code).toBe('OVERLAPPING_ROOTS')
 })
 
 test('resolveProjects: missing roots are rejected with the pattern', async () => {
   const dir = await tmpCopy(join(fixtures, 'regular-repo-ts'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  const literal = await expectMdocsError(() => resolveProjects(resolveConfig({ rootSrcDir: 'no/such/dir' }), dir))
+  const literal = await expectMdaicsError(() => resolveProjects(resolveConfig({ rootSrcDir: 'no/such/dir' }), dir))
   expect(literal.code).toBe('INVALID_ROOT')
-  const globMiss = await expectMdocsError(() => resolveProjects(resolveConfig({ rootSrcDir: 'packages/*/nope' }), dir))
+  const globMiss = await expectMdaicsError(() => resolveProjects(resolveConfig({ rootSrcDir: 'packages/*/nope' }), dir))
   expect(globMiss.code).toBe('NO_ROOTS')
 })
 
@@ -104,7 +104,7 @@ test('outputPathFor: mirrors the src tree with .md extension', async () => {
 })
 
 test('collectSourceFiles: does not follow directory symlinks', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-link-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-link-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src', 'real'))
   await writeUtf8(join(dir, 'src', 'real', 'a.ts'), 'export const a = 1\n')
@@ -123,7 +123,7 @@ test('resolveProjects: output stays contained for nested outDirName', async () =
 })
 
 test('collectSourceFiles: an unreadable subdirectory is skipped with a note', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-locked-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-locked-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src', 'ok'))
   await mkdirp(join(dir, 'src', 'locked'))
@@ -141,7 +141,7 @@ test('collectSourceFiles: an unreadable subdirectory is skipped with a note', as
 })
 
 test('collectSourceFiles: duplicate stem files fail with OUTPUT_COLLISION', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-dup-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-dup-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src'))
   await writeUtf8(join(dir, 'src', 'dup.ts'), 'export const a = 1\n')
@@ -158,7 +158,7 @@ test('resolveProjects: glob that matches only files errors with a distinct messa
 })
 
 test('resolveProjects: entries under node_modules are ignored by glob expansion', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-nm-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-nm-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'node_modules', 'pkg'))
   await mkdirp(join(dir, 'src'))
@@ -169,7 +169,7 @@ test('resolveProjects: entries under node_modules are ignored by glob expansion'
 })
 
 test('resolveProjects: a src root pointing at a file is rejected', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-file-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-file-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'srcfile'), 'not a dir')
   await expect(resolveProjects(resolveConfig({ rootSrcDir: 'srcfile' }), dir)).rejects.toThrow(/not a directory/)
@@ -183,7 +183,7 @@ test('resolveProjects: realpath dedups symlinked and dotted roots', async () => 
 })
 
 test('collectSourceFiles: hidden dotfiles and extension-less files are skipped', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-dot-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-dot-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src'))
   await writeUtf8(join(dir, 'src', '.hidden.ts'), 'export const a = 1\n')
@@ -195,7 +195,7 @@ test('collectSourceFiles: hidden dotfiles and extension-less files are skipped',
 })
 
 test('collectSourceFiles: .d.ts files are excluded, .TS is accepted case-insensitively', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-dts-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-dts-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src'))
   await writeUtf8(join(dir, 'src', 'types.d.ts'), 'export interface X { a: number }\n')
@@ -207,7 +207,7 @@ test('collectSourceFiles: .d.ts files are excluded, .TS is accepted case-insensi
 })
 
 test('resolveProjects: a dangling symlink match is skipped but still counts as matched', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-dangling-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-dangling-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'packages', 'real'))
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- mkdtemp fixture path; tests never escape the temp dir

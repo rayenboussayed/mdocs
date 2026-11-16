@@ -14,7 +14,7 @@
 skipping <code>node_modules</code>, VCS internals, declaration files and the generated
 docs directory itself. Returns the files plus any non-fatal notes (e.g.
 unreadable directories, which are skipped rather than aborting the run).</p>
-<p>Throws <code>MdocsError</code> <code>OUTPUT_COLLISION</code> when two source files would
+<p>Throws <code>MdaicsError</code> <code>OUTPUT_COLLISION</code> when two source files would
 produce the same <code>.md</code> path (e.g. <code>dup.ts</code> and <code>dup.mjs</code>) — that is a hard
 error, not something to silently overwrite.</p>
 </dd>
@@ -78,7 +78,7 @@ skipping `node_modules`, VCS internals, declaration files and the generated
 docs directory itself. Returns the files plus any non-fatal notes (e.g.
 unreadable directories, which are skipped rather than aborting the run).
 
-Throws `MdocsError` `OUTPUT_COLLISION` when two source files would
+Throws `MdaicsError` `OUTPUT_COLLISION` when two source files would
 produce the same `.md` path (e.g. `dup.ts` and `dup.mjs`) — that is a hard
 error, not something to silently overwrite.
 
@@ -145,14 +145,14 @@ Expands `config.rootSrcDir` to concrete `ProjectRoot`s.
 **Returns**: <code>Promise&lt;ProjectRoot[]&gt;</code> - The resolved projects (one per src directory).  
 **Throws**:
 
-- <code>MdocsError</code> `NO_ROOTS` when nothing matches, `OVERLAPPING_ROOTS`
+- <code>MdaicsError</code> `NO_ROOTS` when nothing matches, `OVERLAPPING_ROOTS`
   when one src dir contains another, `INVALID_ROOT` for unreadable/non-dir
   entries.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| config | <code>ResolvedMdocsConfig</code> | The resolved config (roots and output directory names). |
+| config | <code>ResolvedMdaicsConfig</code> | The resolved config (roots and output directory names). |
 | cwd | <code>string</code> | Base directory for relative entries and glob expansion. |
 
 src: src/resolve.ts:145  

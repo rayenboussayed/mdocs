@@ -1,10 +1,10 @@
 ## Functions
 
 <dl>
-<dt><a href="#expectMdocsError">expectMdocsError(fn)</a> ⇒ <code>Promise&lt;MdocsError&gt;</code></dt>
-<dd><p>Asserts that <code>fn</code> throws an <code>MdocsError</code>, returning it for further
+<dt><a href="#expectMdaicsError">expectMdaicsError(fn)</a> ⇒ <code>Promise&lt;MdaicsError&gt;</code></dt>
+<dd><p>Asserts that <code>fn</code> throws an <code>MdaicsError</code>, returning it for further
 assertions. Re-throws the original error untouched when it is not an
-<code>MdocsError</code>, so unexpected failure modes stay loud.</p>
+<code>MdaicsError</code>, so unexpected failure modes stay loud.</p>
 </dd>
 <dt><a href="#mkdirp">mkdirp(path)</a> ⇒ <code>Promise&lt;void&gt;</code></dt>
 <dd><p><code>mkdir</code> with <code>recursive: true</code> always (tests only create fixture trees) —
@@ -18,19 +18,19 @@ delegated to jutilities&#39; <code>ensureDirectory</code>.</p>
 </dd>
 </dl>
 
-<a name="expectMdocsError"></a>
+<a name="expectMdaicsError"></a>
 
-## expectMdocsError(fn) ⇒ <code>Promise&lt;MdocsError&gt;</code>
-Asserts that `fn` throws an `MdocsError`, returning it for further
+## expectMdaicsError(fn) ⇒ <code>Promise&lt;MdaicsError&gt;</code>
+Asserts that `fn` throws an `MdaicsError`, returning it for further
 assertions. Re-throws the original error untouched when it is not an
-`MdocsError`, so unexpected failure modes stay loud.
+`MdaicsError`, so unexpected failure modes stay loud.
 
 **Kind**: global function  
-**Returns**: <code>Promise&lt;MdocsError&gt;</code> - The `MdocsError` it threw.  
+**Returns**: <code>Promise&lt;MdaicsError&gt;</code> - The `MdaicsError` it threw.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| fn | <code>() &#x3D;&gt; unknown</code> | The function expected to throw an `MdocsError`. |
+| fn | <code>() &#x3D;&gt; unknown</code> | The function expected to throw an `MdaicsError`. |
 
 src: src/test-utils.ts:17  
 <a name="mkdirp"></a>

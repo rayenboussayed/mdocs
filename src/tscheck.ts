@@ -1,5 +1,5 @@
 /**
- * TypeScript type extraction for `.ts` sources — the part of mdocs jsdoc
+ * TypeScript type extraction for `.ts` sources — the part of mdaics jsdoc
  * cannot do on its own.
  *
  * Two responsibilities:

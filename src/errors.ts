@@ -1,8 +1,8 @@
 /**
- * Shared error type for all expected `mdocs` failures.
+ * Shared error type for all expected `mdaics` failures.
  *
  * Every failure an average user can plausibly fix (bad config, missing
- * directories, unreadable source files, …) is reported as a `MdocsError`
+ * directories, unreadable source files, …) is reported as a `MdaicsError`
  * with a stable machine-readable `code`. Unexpected
  * programming errors are left as plain `Error`s so they surface with a stack
  * trace instead of being masked by a friendly message.
@@ -24,13 +24,13 @@
  * for per-file failures, and thrown for run-fatal ones (`INVALID_CONFIG`,
  * `CONFIG_*`, `NO_ROOTS`, `INVALID_ROOT`, `OVERLAPPING_ROOTS`, `OUTPUT_COLLISION`).
  */
-export class MdocsError extends Error {
+export class MdaicsError extends Error {
   /** Stable machine-readable code, e.g. `CONFIG_NOT_FOUND`, `NO_ROOTS`, `INVALID_CONFIG`. */
   public readonly code: string
 
   public constructor(code: string, message: string, options?: ErrorOptions) {
     super(message, options)
-    this.name = 'MdocsError'
+    this.name = 'MdaicsError'
     this.code = code
   }
 }
@@ -45,10 +45,10 @@ export function errorMessage(cause: unknown): string {
 }
 
 /**
- * Narrows `error` to `MdocsError`.
+ * Narrows `error` to `MdaicsError`.
  * @param error - The value to narrow.
- * @returns `true` when `error` is a `MdocsError`.
+ * @returns `true` when `error` is a `MdaicsError`.
  */
-export function isMdocsError(error: unknown): error is MdocsError {
-  return error instanceof MdocsError
+export function isMdaicsError(error: unknown): error is MdaicsError {
+  return error instanceof MdaicsError
 }

@@ -1,7 +1,7 @@
 /**
- * Configuration loading and validation for `mdocs`.
+ * Configuration loading and validation for `mdaics`.
  *
- * Loading follows the vite convention: `mdocs.config.{js,mjs,cjs}` in the
+ * Loading follows the vite convention: `mdaics.config.{js,mjs,cjs}` in the
  * working directory (or an explicit `--config <path>`), supporting both
  * `export default …` and `module.exports = …`, optionally with a function
  * form (`defineConfig(env => config)`). Use `defineConfig` for typed
@@ -13,7 +13,7 @@
  * Node's `require(esm)` rejects).
  *
  * Security note: the config file is arbitrary JavaScript executed in-process
- * (like every vite/webpack config). Only run `mdocs` on projects you trust.
+ * (like every vite/webpack config). Only run `mdaics` on projects you trust.
  * There is intentionally no sandboxing and no network access in the loader.
  */
 import { toArray } from 'jutilities/to'
@@ -26,14 +26,14 @@ import { availableParallelism } from 'node:os'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { errorMessage, isMdocsError, MdocsError } from './errors.js'
-import { type MdocsConfigInput, type MdocsConfigOutput, parseMdocsConfig, parseProcessEnv } from './schema.js'
+import { errorMessage, isMdaicsError, MdaicsError } from './errors.js'
+import { type MdaicsConfigInput, type MdaicsConfigOutput, parseMdaicsConfig, parseProcessEnv } from './schema.js'
 
 export { DEFAULT_CONFIG } from './schema.js'
 
 /** Environment passed to the function form of the config. */
 export interface ConfigEnv {
-  /** Always `'build'` — mdocs generates artifacts. */
+  /** Always `'build'` — mdaics generates artifacts. */
   command: 'build'
   /** `NODE_ENV` or `'production'`. */
   mode: string
@@ -43,19 +43,19 @@ export interface ConfigEnv {
  * User-facing configuration object (all keys optional — see `DEFAULT_CONFIG`;
  * each key is validated by the zod schema in `schema.js`).
  */
-export type MdocsConfig = MdocsConfigInput
+export type MdaicsConfig = MdaicsConfigInput
 
 /**
  * What a config file may export: the object itself, a promise of it, or a
  * function (sync or async) receiving `ConfigEnv`.
  */
-export type MdocsConfigExport =
-  | ((env: ConfigEnv) => MdocsConfig | Promise<MdocsConfig>)
-  | MdocsConfig
-  | Promise<MdocsConfig>
+export type MdaicsConfigExport =
+  | ((env: ConfigEnv) => MdaicsConfig | Promise<MdaicsConfig>)
+  | MdaicsConfig
+  | Promise<MdaicsConfig>
 
 /** Validated, fully-resolved configuration used by the pipeline. */
-export interface ResolvedMdocsConfig {
+export interface ResolvedMdaicsConfig {
   /** Master switch for the render cache. */
   cache: boolean
   /** Cache destination resolved against cwd (relative, as configured). */
@@ -77,11 +77,11 @@ export interface ResolvedMdocsConfig {
  * @param config - The typed config object, function, or promise of either.
  * @returns The config export, unchanged.
  */
-export function defineConfig(config: MdocsConfigExport): MdocsConfigExport {
+export function defineConfig(config: MdaicsConfigExport): MdaicsConfigExport {
   return config
 }
 
-const CONFIG_FILE_NAMES = ['mdocs.config.js', 'mdocs.config.mjs', 'mdocs.config.cjs'] as const
+const CONFIG_FILE_NAMES = ['mdaics.config.js', 'mdaics.config.mjs', 'mdaics.config.cjs'] as const
 
 /**
  * Locates, loads, evaluates and validates the config file for `cwd`.
@@ -102,12 +102,12 @@ const CONFIG_FILE_NAMES = ['mdocs.config.js', 'mdocs.config.mjs', 'mdocs.config.
 export async function loadConfig(
   cwd: string,
   explicitPath?: string,
-  overrides?: MdocsConfig,
-): Promise<{ config: ResolvedMdocsConfig; filePath: string | undefined }> {
+  overrides?: MdaicsConfig,
+): Promise<{ config: ResolvedMdaicsConfig; filePath: string | undefined }> {
   const filePath = await locateConfigFile(cwd, explicitPath)
   // One choke point for everything the config module or its export-shape
   // handling can throw: raw library/runtime errors are wrapped in
-  // CONFIG_LOAD_FAILED; errors that are already MdocsErrors pass through.
+  // CONFIG_LOAD_FAILED; errors that are already MdaicsErrors pass through.
   let raw: unknown
   if (filePath === undefined) {
     raw = {}
@@ -115,7 +115,7 @@ export async function loadConfig(
     try {
       raw = await evaluateConfigExport(await importConfigModule(filePath), filePath)
     } catch (error) {
-      if (isMdocsError(error)) throw error
+      if (isMdaicsError(error)) throw error
       throw configLoadError(filePath, error)
     }
   }
@@ -124,13 +124,13 @@ export async function loadConfig(
 }
 
 /**
- * Resolves and validates a user-facing config into a `ResolvedMdocsConfig`.
+ * Resolves and validates a user-facing config into a `ResolvedMdaicsConfig`.
  * @param raw - The user-facing (unvalidated) config.
  * @returns The frozen, fully-resolved config.
  */
-export function resolveConfig(raw: unknown): ResolvedMdocsConfig {
-  // Shape and key validation live in parseMdocsConfig — the single validation root.
-  const input: MdocsConfigOutput = parseMdocsConfig(raw)
+export function resolveConfig(raw: unknown): ResolvedMdaicsConfig {
+  // Shape and key validation live in parseMdaicsConfig — the single validation root.
+  const input: MdaicsConfigOutput = parseMdaicsConfig(raw)
   return Object.freeze({
     cache: input.cache,
     cachePath: input.cachePath,
@@ -145,11 +145,11 @@ export function resolveConfig(raw: unknown): ResolvedMdocsConfig {
  * Wraps config-loading failures with a consistent code and message.
  * @param filePath - The config file that failed to load.
  * @param cause - The underlying error.
- * @returns A `MdocsError` with code `CONFIG_LOAD_FAILED`.
+ * @returns A `MdaicsError` with code `CONFIG_LOAD_FAILED`.
  */
-function configLoadError(filePath: string, cause: unknown): MdocsError {
+function configLoadError(filePath: string, cause: unknown): MdaicsError {
   const reason = errorMessage(cause)
-  return new MdocsError('CONFIG_LOAD_FAILED', `failed to load config ${filePath}: ${reason}`, { cause })
+  return new MdaicsError('CONFIG_LOAD_FAILED', `failed to load config ${filePath}: ${reason}`, { cause })
 }
 
 /**
@@ -157,7 +157,7 @@ function configLoadError(filePath: string, cause: unknown): MdocsError {
  * @param overrides - The user-facing config overrides (any keys missing are kept unset).
  * @returns The overrides with only the set keys.
  */
-function definedOverrides(overrides: MdocsConfig): Record<string, unknown> {
+function definedOverrides(overrides: MdaicsConfig): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(overrides)) {
     // eslint-disable-next-line security/detect-object-injection -- key is a literal from the allow-list above; out is a plain Record
@@ -204,7 +204,7 @@ async function evaluateConfigExport(exported: unknown, filePath: string): Promis
     value = await (value as (env: ConfigEnv) => unknown)(env)
   }
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new MdocsError(
+    throw new MdaicsError(
       'INVALID_CONFIG',
       `config in ${filePath} must export a plain object (or a function returning one), received ${describeType(value)}`,
     )
@@ -253,7 +253,7 @@ async function importConfigModule(filePath: string): Promise<unknown> {
       return importEsmInCommonJsPackage(filePath)
     }
   }
-  throw new MdocsError('CONFIG_NOT_FOUND', `unsupported config extension "${ext}" for ${filePath} (expected .js, .mjs or .cjs)`)
+  throw new MdaicsError('CONFIG_NOT_FOUND', `unsupported config extension "${ext}" for ${filePath} (expected .js, .mjs or .cjs)`)
 }
 
 /**
@@ -264,16 +264,16 @@ async function importConfigModule(filePath: string): Promise<unknown> {
  * @returns The module export.
  */
 async function importEsmInCommonJsPackage(filePath: string): Promise<unknown> {
-  const scratchFile = join(dirname(filePath), `.${basename(filePath)}.mdocs-${process.pid}-${randomBytes(4).toString('hex')}.mjs`)
+  const scratchFile = join(dirname(filePath), `.${basename(filePath)}.mdaics-${process.pid}-${randomBytes(4).toString('hex')}.mjs`)
   try {
     // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
     await writeFile(scratchFile, await readFile(filePath), { flag: 'wx', mode: 0o600 })
     return await import(pathToFileURL(scratchFile).href)
   } catch (error) {
-    throw new MdocsError(
+    throw new MdaicsError(
       'CONFIG_LOAD_FAILED',
       `failed to load config ${filePath}: ${error instanceof Error ? error.message : String(error)}\n` +
-        'hint: rename the file to mdocs.config.mjs or set "type": "module" in package.json',
+        'hint: rename the file to mdaics.config.mjs or set "type": "module" in package.json',
       { cause: error },
     )
   } finally {
@@ -318,7 +318,7 @@ async function locateConfigFile(cwd: string, explicitPath?: string): Promise<str
     try {
       await access(filePath, fsConstants.R_OK)
     } catch {
-      throw new MdocsError('CONFIG_NOT_FOUND', `config file not found or not readable: ${filePath}`)
+      throw new MdaicsError('CONFIG_NOT_FOUND', `config file not found or not readable: ${filePath}`)
     }
     return filePath
   }

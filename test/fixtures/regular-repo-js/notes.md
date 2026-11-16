@@ -4,7 +4,7 @@ Plain-JS fixture, ESM. `dist/` is produced by the same toolchain a JS-using
 consumer would use:
 
 ```
-node <mdocs-root>/node_modules/typescript/bin/tsc -p tsconfig.json
+node <mdaics-root>/node_modules/typescript/bin/tsc -p tsconfig.json
 ```
 
 (`allowJs: true`, `checkJs: false`, `sourceMap + declaration + declarationMap: true`,

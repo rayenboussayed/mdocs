@@ -1,5 +1,5 @@
 /**
- * Latency benchmarks for mdocs's hot paths — informational only.
+ * Latency benchmarks for mdaics's hot paths — informational only.
  *
  * These are NOT part of `npm test` and never gate anything: numbers are
  * machine-dependent, so nobody should read a threshold into them. They exist
@@ -88,7 +88,7 @@ function requireCorpus(): BenchCorpus {
 }
 
 beforeAll(async () => {
-  printFingerprint('mdocs latency bench')
+  printFingerprint('mdaics latency bench')
   // Generated once per run; torn down in afterAll. npm run bench
   // re-creates it every time, so it is never a stale committed artifact.
   corpus = await createBenchCorpus()
@@ -181,7 +181,7 @@ test('normalizeDoclets + injectPointers: per-doclet writes', async ({ bench }) =
     const doclets = makeDoclets()
     _normalizeDoclets(doclets)
     _injectPointers(doclets, POINTERS)
-    pointerSink += doclets[0]?.mdocs !== undefined ? 1 : 0
+    pointerSink += doclets[0]?.mdaics !== undefined ? 1 : 0
   }).run()
   expect(pointerSink).toBeGreaterThan(0)
 })

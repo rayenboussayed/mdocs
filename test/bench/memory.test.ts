@@ -1,5 +1,5 @@
 /**
- * Memory footprint scenarios for the mdocs pipeline.
+ * Memory footprint scenarios for the mdaics pipeline.
  *
  * NOT part of `npm test` — run with `npm run bench:memory` (add
  * `NODE_OPTIONS=--expose-gc` for meaningful heap numbers; the npm script
@@ -77,7 +77,7 @@ function requireCorpus(): BenchCorpus {
 
 beforeAll(async () => {
   const floor = snapshot()
-  printFingerprint('mdocs memory bench')
+  printFingerprint('mdaics memory bench')
   console.info(`worker floor after imports (rss/heapUsed): ${floor.rss.toFixed(1)} / ${floor.heapUsed.toFixed(1)} MB`)
   corpus = await createBenchCorpus(CORPUS_FILES)
   await settle()

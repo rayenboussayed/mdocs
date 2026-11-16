@@ -2,7 +2,7 @@
 
 Deliberately has **no `dist/` folder at all** (do not build it). Tests should
 assert that docs still generate and that the `dist:` line is **omitted** — only
-the `src:` pointer is emitted — with one `mdocs: warning: dist folder not
+the `src:` pointer is emitted — with one `mdaics: warning: dist folder not
 found: …` on stderr and one `(dist)` issue per run.
 
 ## line numbers

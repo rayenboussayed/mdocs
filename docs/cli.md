@@ -5,7 +5,7 @@
 <dd><p>Runs the pipeline and prints the summary. Returns the exit code.</p>
 </dd>
 <dt><a href="#formatUnexpected">formatUnexpected(error)</a> ⇒ <code>string</code></dt>
-<dd><p>Formats an unexpected error, honoring MDOCS_DEBUG for stack traces.</p>
+<dd><p>Formats an unexpected error, honoring MDAICS_DEBUG for stack traces.</p>
 </dd>
 <dt><a href="#parseParallelism">parseParallelism(value)</a> ⇒ <code>number | boolean</code></dt>
 <dd><p>Parses <code>--parallelism</code> into true | false | integer. Range checks live in the config schema.</p>
@@ -36,10 +36,10 @@ dist: dist/cli.js:49
 <a name="formatUnexpected"></a>
 
 ## formatUnexpected(error) ⇒ <code>string</code>
-Formats an unexpected error, honoring MDOCS_DEBUG for stack traces.
+Formats an unexpected error, honoring MDAICS_DEBUG for stack traces.
 
 **Kind**: global function  
-**Returns**: <code>string</code> - The message (plus stack trace when `MDOCS_DEBUG` is set).  
+**Returns**: <code>string</code> - The message (plus stack trace when `MDAICS_DEBUG` is set).  
 
 | Param | Type | Description |
 | --- | --- | --- |

@@ -13,20 +13,20 @@ import { join } from 'node:path'
 /** Inclusive upper bound for the synthetic corpus size (guards disk/DoS). */
 export const MAX_BENCH_FILES = 1024
 
-/** Default corpus size used when `MDOCS_BENCH_FILES` is unset. */
+/** Default corpus size used when `MDAICS_BENCH_FILES` is unset. */
 export const DEFAULT_BENCH_FILES = 120
 
 /**
- * Parses `MDOCS_BENCH_FILES` into a validated file count.
+ * Parses `MDAICS_BENCH_FILES` into a validated file count.
  * @returns The requested corpus size, clamped to [1, MAX_BENCH_FILES].
  * @throws {RangeError} When the variable is set but not a positive integer.
  */
 export function benchFileCount(): number {
-  const raw = process.env['MDOCS_BENCH_FILES']
+  const raw = process.env['MDAICS_BENCH_FILES']
   if (raw === undefined) return DEFAULT_BENCH_FILES
   const parsed = Number(raw)
   if (!Number.isInteger(parsed) || parsed < 1) {
-    throw new RangeError(`MDOCS_BENCH_FILES must be a positive integer, got "${raw}"`)
+    throw new RangeError(`MDAICS_BENCH_FILES must be a positive integer, got "${raw}"`)
   }
   return Math.min(parsed, MAX_BENCH_FILES)
 }
@@ -40,7 +40,7 @@ export function benchFileCount(): number {
  * an optional string-literal union, and one intentionally undocumented
  * export (the graceful-skip path).
  */
-const TEMPLATE = `/** Bench sample __P__ — synthetic mdocs benchmark corpus file. Do not edit. */
+const TEMPLATE = `/** Bench sample __P__ — synthetic mdaics benchmark corpus file. Do not edit. */
 
 /**
  * @param a - first addend
@@ -113,7 +113,7 @@ export interface BenchCorpus {
  */
 export async function createBenchCorpus(count: number = benchFileCount()): Promise<BenchCorpus> {
 
-  const rootDir = await mkdtemp(join(tmpdir(), 'mdocs-bench-'))
+  const rootDir = await mkdtemp(join(tmpdir(), 'mdaics-bench-'))
   const srcDir = join(rootDir, 'src')
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path sits under the caller-owned mkdtemp root
   await mkdir(srcDir, { recursive: true })
@@ -157,7 +157,7 @@ export function printFingerprint(label: string): void {
   console.info(
     `# ${label} | node ${process.version} | ${process.platform}-${process.arch} | ` +
       `${firstCpu?.model ?? 'unknown cpu'} x${String(cpus().length)} | ` +
-      `NODE_OPTIONS=${process.env['NODE_OPTIONS'] ?? '(unset)'} | MDOCS_BENCH_FILES=${String(benchFileCount())}`,
+      `NODE_OPTIONS=${process.env['NODE_OPTIONS'] ?? '(unset)'} | MDAICS_BENCH_FILES=${String(benchFileCount())}`,
   )
 }
 

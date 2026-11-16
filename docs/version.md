@@ -1,7 +1,7 @@
 <a name="packageVersion"></a>
 
 ## packageVersion() ⇒ <code>string</code>
-Reads the mdocs package version from the packaged `package.json`.
+Reads the mdaics package version from the packaged `package.json`.
 
 **Kind**: global function  
 **Returns**: <code>string</code> - The version, or `0.0.0-unknown` when it is unreadable.  

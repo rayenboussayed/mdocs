@@ -1,10 +1,10 @@
 ## Classes
 
 <dl>
-<dt><a href="#MdocsError">MdocsError</a></dt>
-<dd><p>Shared error type for all expected <code>mdocs</code> failures.</p>
+<dt><a href="#MdaicsError">MdaicsError</a></dt>
+<dd><p>Shared error type for all expected <code>mdaics</code> failures.</p>
 <p>Every failure an average user can plausibly fix (bad config, missing
-directories, unreadable source files, …) is reported as a <code>MdocsError</code>
+directories, unreadable source files, …) is reported as a <code>MdaicsError</code>
 with a stable machine-readable <code>code</code>. Unexpected
 programming errors are left as plain <code>Error</code>s so they surface with a stack
 trace instead of being masked by a friendly message.</p>
@@ -70,18 +70,18 @@ for per-file failures, and thrown for run-fatal ones (<code>INVALID_CONFIG</code
 <dt><a href="#errorMessage">errorMessage(cause)</a> ⇒ <code>string</code></dt>
 <dd><p>Stringifies an unknown caught value for diagnostics.</p>
 </dd>
-<dt><a href="#isMdocsError">isMdocsError(error)</a> ⇒ <code>boolean</code></dt>
-<dd><p>Narrows <code>error</code> to <code>MdocsError</code>.</p>
+<dt><a href="#isMdaicsError">isMdaicsError(error)</a> ⇒ <code>boolean</code></dt>
+<dd><p>Narrows <code>error</code> to <code>MdaicsError</code>.</p>
 </dd>
 </dl>
 
-<a name="MdocsError"></a>
+<a name="MdaicsError"></a>
 
-## MdocsError
-Shared error type for all expected `mdocs` failures.
+## MdaicsError
+Shared error type for all expected `mdaics` failures.
 
 Every failure an average user can plausibly fix (bad config, missing
-directories, unreadable source files, …) is reported as a `MdocsError`
+directories, unreadable source files, …) is reported as a `MdaicsError`
 with a stable machine-readable `code`. Unexpected
 programming errors are left as plain `Error`s so they surface with a stack
 trace instead of being masked by a friendly message.
@@ -106,12 +106,12 @@ for per-file failures, and thrown for run-fatal ones (`INVALID_CONFIG`,
 **Kind**: global class  
 src: src/errors.ts:27  
 dist: dist/errors.js:27
-<a name="MdocsError+code"></a>
+<a name="MdaicsError+code"></a>
 
-### mdocsError.code
+### mdaicsError.code
 Stable machine-readable code, e.g. `CONFIG_NOT_FOUND`, `NO_ROOTS`, `INVALID_CONFIG`.
 
-**Kind**: instance property of [<code>MdocsError</code>](#MdocsError)  
+**Kind**: instance property of [<code>MdaicsError</code>](#MdaicsError)  
 src: src/errors.ts:29  
 dist: dist/errors.js:29
 <a name="errorMessage"></a>
@@ -128,13 +128,13 @@ Stringifies an unknown caught value for diagnostics.
 
 src: src/errors.ts:43  
 dist: dist/errors.js:41
-<a name="isMdocsError"></a>
+<a name="isMdaicsError"></a>
 
-## isMdocsError(error) ⇒ <code>boolean</code>
-Narrows `error` to `MdocsError`.
+## isMdaicsError(error) ⇒ <code>boolean</code>
+Narrows `error` to `MdaicsError`.
 
 **Kind**: global function  
-**Returns**: <code>boolean</code> - `true` when `error` is a `MdocsError`.  
+**Returns**: <code>boolean</code> - `true` when `error` is a `MdaicsError`.  
 
 | Param | Type | Description |
 | --- | --- | --- |

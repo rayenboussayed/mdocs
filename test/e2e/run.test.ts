@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import { expect, onTestFinished, test } from 'vitest'
 
 import { run } from '../../src/run.js'
-import { expectMdocsError, mkdirp, readUtf8, writeUtf8 } from '../../src/test-utils.js'
+import { expectMdaicsError, mkdirp, readUtf8, writeUtf8 } from '../../src/test-utils.js'
 
 const fixtures = join(process.cwd(), 'test', 'fixtures')
 
@@ -18,7 +18,7 @@ const fixtures = join(process.cwd(), 'test', 'fixtures')
  * @returns The absolute path of the copied fixture.
  */
 async function projectCopy(fixture: string): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-e2e-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-e2e-'))
   const dest = join(dir, 'proj')
   await cp(join(fixtures, fixture), dest, { recursive: true })
   return dest
@@ -85,7 +85,7 @@ test('monorepo: overlapping roots are rejected with both paths', async () => {
   const dir = await projectCopy('monorepo')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
-  const error = await expectMdocsError(() => run({ cwd: dir, rootSrcDir: ['packages', 'packages/alpha/src'] }))
+  const error = await expectMdaicsError(() => run({ cwd: dir, rootSrcDir: ['packages', 'packages/alpha/src'] }))
   expect(error.code).toBe('OVERLAPPING_ROOTS')
 })
 
@@ -93,7 +93,7 @@ test('monorepo: a glob that matches nothing fails with the pattern', async () =>
   const dir = await projectCopy('monorepo')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
-  const error = await expectMdocsError(() => run({ cwd: dir, rootSrcDir: ['packages/*/nope'] }))
+  const error = await expectMdaicsError(() => run({ cwd: dir, rootSrcDir: ['packages/*/nope'] }))
   expect(error.code).toBe('NO_ROOTS')
 })
 
@@ -161,14 +161,14 @@ test('cache: false disables the cache entirely (no file is created)', async () =
   const result = await run({ cache: false, cwd: dir, parallelism: false })
   expect(result.failed).toHaveLength(0)
   expect(result.cache).toBeUndefined()
-  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+  await expect(readUtf8(join(dir, '.mdaicscache'))).rejects.toThrow(/ENOENT/)
 })
 
 test('a corrupt cache file is ignored: run succeeds, one cache note recorded', async () => {
   const dir = await projectCopy('regular-repo-ts')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
-  await writeUtf8(join(dir, '.mdocscache'), '{{{ corrupt')
+  await writeUtf8(join(dir, '.mdaicscache'), '{{{ corrupt')
   const result = await run({ cwd: dir, parallelism: false })
   expect(result.failed).toHaveLength(0)
   expect(result.written.length).toBeGreaterThanOrEqual(2)
@@ -179,11 +179,11 @@ test('config file cache: false disables the render cache', async () => {
   const dir = await projectCopy('regular-repo-ts')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default { cache: false }\n')
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default { cache: false }\n')
   const result = await run({ cwd: dir, parallelism: false })
   expect(result.failed).toHaveLength(0)
   expect(result.cache).toBeUndefined()
-  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+  await expect(readUtf8(join(dir, '.mdaicscache'))).rejects.toThrow(/ENOENT/)
 })
 
 test('--dry-run never creates or touches the cache', async () => {
@@ -191,7 +191,7 @@ test('--dry-run never creates or touches the cache', async () => {
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
 
   await run({ cwd: dir, dryRun: true })
-  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+  await expect(readUtf8(join(dir, '.mdaicscache'))).rejects.toThrow(/ENOENT/)
 })
 
 test('monorepo: a package without dist loses dist lines, the other keeps them', async () => {
@@ -250,7 +250,7 @@ test('regular-repo-ts: a docs/ path that is a file fails the run with per-file e
 test('dry-run reports collection notes (e.g. unreadable directories) without failing', async () => {
   const dir = await projectCopy('regular-repo-ts')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default {}')
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default {}')
   await mkdirp(join(dir, 'src', 'locked'))
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- mkdtemp fixture path; tests never escape the temp dir
   await chmod(join(dir, 'src', 'locked'), 0o000)
@@ -258,14 +258,14 @@ test('dry-run reports collection notes (e.g. unreadable directories) without fai
   onTestFinished(() => chmod(join(dir, 'src', 'locked'), 0o700))
 
   const result = await run({ cwd: dir, dryRun: true })
-  expect(result.configPath).toBe(join(dir, 'mdocs.config.js'))
+  expect(result.configPath).toBe(join(dir, 'mdaics.config.js'))
   expect(result.dryRun).toBe(true)
   expect(result.issues).toHaveLength(1)
   expect(result.issues[0]?.issue).toContain('cannot read directory')
 })
 
 test('stale dist sourcemap marks every dist line approximate, exactly one note per file', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-stale-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-stale-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src'))
   await mkdirp(join(dir, 'dist'))
@@ -308,18 +308,18 @@ test('run without explicit cwd uses process.cwd()', async () => {
   expect(result.written).toHaveLength(2)
 })
 
-test('a configured mdocs.config.js is picked up and reflected in the result', async () => {
+test('a configured mdaics.config.js is picked up and reflected in the result', async () => {
   const dir = await projectCopy('regular-repo-ts')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default { rootSrcDir: ["src"], outDirName: "custom-docs" }')
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default { rootSrcDir: ["src"], outDirName: "custom-docs" }')
 
   const result = await run({ cwd: dir })
-  expect(result.configPath).toBe(join(dir, 'mdocs.config.js'))
+  expect(result.configPath).toBe(join(dir, 'mdaics.config.js'))
   expect(result.written.every((w) => w.to.includes(join('custom-docs')))).toBe(true)
 })
 
 test('stale TS dist sourcemap marks every dist line approximate, exactly one note per file', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-stale-ts-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-stale-ts-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'src'))
   await mkdirp(join(dir, 'dist'))
@@ -344,7 +344,7 @@ test('stale TS dist sourcemap marks every dist line approximate, exactly one not
 test('run in non-dry-run mode surfaces collection notes', async () => {
   const dir = await projectCopy('regular-repo-ts')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default {}')
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default {}')
   await mkdirp(join(dir, 'src', 'locked'))
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- mkdtemp fixture path; tests never escape the temp dir
   await chmod(join(dir, 'src', 'locked'), 0o000)
@@ -368,6 +368,6 @@ test('jsdoc2md writing warnings still renders and does not leak scratch paths', 
   expect(result.failed).toHaveLength(1)
   expect(result.failed.some((f) => f.file.endsWith('single.mjs'))).toBe(true)
   const md = await readUtf8(join(dir, 'docs', 'math.md'))
-  // The pointer references the fixture's own dist, not mdocs's scratch files.
+  // The pointer references the fixture's own dist, not mdaics's scratch files.
   expect(md).toMatch(/dist[\\/]math\.js:26/)
 })

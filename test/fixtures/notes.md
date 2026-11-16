@@ -3,7 +3,7 @@
 All fixtures are copied to `os.tmpdir()` before the CLI runs, so assume the
 fixture tree gets polluted; regenerate `dist/` if a test needs a clean build
 (see each fixture's notes.md for the exact tsc command). No `node_modules` is
-committed anywhere here — tests resolve deps from the mdocs root.
+committed anywhere here — tests resolve deps from the mdaics root.
 
 ## fixtures
 

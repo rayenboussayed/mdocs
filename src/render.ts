@@ -1,16 +1,16 @@
 /**
- * Per-file rendering: jsdoc-to-markdown invocation plus injection of mdocs's
+ * Per-file rendering: jsdoc-to-markdown invocation plus injection of mdaics's
  * per-symbol `src:` / `dist:` pointer lines.
  *
  * Injection mechanics (dmd extension points — see `node_modules/dmd`):
  *
  * - dmd renders one `docs.hbs` document per symbol, recursing into class
  *   members. We override `docs.hbs` with the same content plus a
- *   `{{>mdocs-source~}}` block right after `{{>body}}`, and register an
- *   `mdocs-source.hbs` partial that prints the two pointer lines. dmd
+ *   `{{>mdaics-source~}}` block right after `{{>body}}`, and register an
+ *   `mdaics-source.hbs` partial that prints the two pointer lines. dmd
  *   registers external partials (by filename basename) *after* its built-ins,
  *   so our override wins (handlebars re-registration replaces).
- * - The `mdocs` object on each doclet is what the partial prints — plain
+ * - The `mdaics` object on each doclet is what the partial prints — plain
  *   pre-formatted strings, keeping the handlebars side logic-free.
  *
  * jsdoc-to-markdown is invoked with a strictly whitelisted option set:
@@ -37,7 +37,7 @@ import type { Cache, FileFingerprints } from './cache.js'
 import type { TypeProgram } from './tscheck.js'
 
 import { type DmdDoclet, injectCheckerTypes, injectPointers, normalizeDoclets, type SymbolPointer } from './doclet.js'
-import { errorMessage, MdocsError } from './errors.js'
+import { errorMessage, MdaicsError } from './errors.js'
 import { createLineMapper, type DistMapInfo, readFileSourceMap, type SourceLineMapper } from './lines.js'
 import { isTypeScriptExtension, type SourceExtension, type SourceFile } from './resolve.js'
 
@@ -68,14 +68,14 @@ export interface RenderFileResult {
 /** The two handlebars partials injected into dmd. */
 const DOCS_OVERRIDE = `{{>header~}}
 {{>body}}
-{{>mdocs-source~}}
+{{>mdaics-source~}}
 {{>member-index~}}
 {{>separator~}}
 {{>members~}}
 `
 
-const MDOCS_SOURCE_PARTIAL = `{{#if mdocs}}src: {{{mdocs.src}}}  
-{{#if mdocs.dist}}dist: {{{mdocs.dist}}}
+const MDAICS_SOURCE_PARTIAL = `{{#if mdaics}}src: {{{mdaics.src}}}  
+{{#if mdaics.dist}}dist: {{{mdaics.dist}}}
 {{/if~}}{{/if~}}
 `
 
@@ -146,7 +146,7 @@ export async function renderSourceFile(
     // A wall-clock timeout rejects with `undefined` when no signal is passed —
     // remap it to the per-file timeout error; anything else is jsdoc's own rejection.
     const reason = cause === undefined
-      ? new MdocsError('RENDER_TIMEOUT', `jsdoc timed out after ${String(timeoutMs)}ms on ${file.relPath}`)
+      ? new MdaicsError('RENDER_TIMEOUT', `jsdoc timed out after ${String(timeoutMs)}ms on ${file.relPath}`)
       : cause
     return fail(file, deps.outPath, `jsdoc failed: ${errorMessage(reason)}`)
   }
@@ -194,12 +194,12 @@ export async function renderSourceFile(
 export async function writeTemplatePartials(scratchDir: string): Promise<string[]> {
   const partialsDir = join(scratchDir, 'partials')
   const docsPath = join(partialsDir, 'docs.hbs')
-  const sourcePath = join(partialsDir, 'mdocs-source.hbs')
+  const sourcePath = join(partialsDir, 'mdaics-source.hbs')
   await ensureDirectory({ directory: partialsDir })
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
   await writeFile(docsPath, DOCS_OVERRIDE, { encoding: 'utf8', mode: 0o600 })
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-  await writeFile(sourcePath, MDOCS_SOURCE_PARTIAL, { encoding: 'utf8', mode: 0o600 })
+  await writeFile(sourcePath, MDAICS_SOURCE_PARTIAL, { encoding: 'utf8', mode: 0o600 })
   return [docsPath, sourcePath]
 }
 

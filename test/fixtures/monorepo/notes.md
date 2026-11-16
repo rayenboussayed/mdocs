@@ -4,11 +4,11 @@ Workspaces fixture. Each workspace builds its own `dist/` with the same
 compilerOptions as `regular-repo-ts`, run from inside the package:
 
 ```
-node <mdocs-root>/node_modules/typescript/bin/tsc -p packages/alpha/tsconfig.json
-node <mdocs-root>/node_modules/typescript/bin/tsc -p packages/beta/tsconfig.json
+node <mdaics-root>/node_modules/typescript/bin/tsc -p packages/alpha/tsconfig.json
+node <mdaics-root>/node_modules/typescript/bin/tsc -p packages/beta/tsconfig.json
 ```
 
-Expected `mdocs.config.js` example for this fixture:
+Expected `mdaics.config.js` example for this fixture:
 
 ```js
 export default defineConfig({

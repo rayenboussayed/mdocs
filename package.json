@@ -1,10 +1,10 @@
 {
-  "name": "mdocs",
+  "name": "mdaics",
   "version": "1.0.0",
   "description": "Vite-style CLI wrapper around jsdoc-to-markdown: generate one typed Markdown API doc per source file from JSDoc, with src and dist line pointers.",
   "type": "module",
   "bin": {
-    "mdocs": "dist/cli.js"
+    "mdaics": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

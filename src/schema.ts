@@ -1,20 +1,20 @@
 /**
- * Validation schemas for mdocs, built on zod — one place for everything that
+ * Validation schemas for mdaics, built on zod — one place for everything that
  * crosses a trust boundary:
  *
- * - `mdocsConfigSchema` validates `mdocs.config.*` (and inline config).
- * - `parseProcessEnv` validates the `process.env` variables mdocs reads.
- * - `parseCacheFile` validates the on-disk render cache (`.mdocscache`).
+ * - `mdaicsConfigSchema` validates `mdaics.config.*` (and inline config).
+ * - `parseProcessEnv` validates the `process.env` variables mdaics reads.
+ * - `parseCacheFile` validates the on-disk render cache (`.mdaicscache`).
  *
  * Everything else (jsdoc's doclet output) is internal/parsed data, not a validation target.
  *
  * Error reporting is intentionally "fail with the most context we have": the
- * CLI surfaces `MdocsError` messages verbatim, so messages include the
+ * CLI surfaces `MdaicsError` messages verbatim, so messages include the
  * offending key and the received value.
  */
 import { z } from 'zod'
 
-import { MdocsError } from './errors.js'
+import { MdaicsError } from './errors.js'
 
 // ---------------------------------------------------------------------------
 // config schema
@@ -42,7 +42,7 @@ function dirSegments(value: string): string[] {
  */
 export const DEFAULT_CONFIG = {
   cache: true,
-  cachePath: '.mdocscache',
+  cachePath: '.mdaicscache',
   outDirName: 'docs',
   parallelism: true,
   rootDistDir: 'dist',
@@ -66,10 +66,10 @@ const relativeDirName = z
 const rootSrcDirEntry = z.string().trim().min(1, 'rootSrcDir entries must be non-empty strings')
 
 /**
- * Validates `mdocs.config.*` content. Unknown keys are rejected (an
+ * Validates `mdaics.config.*` content. Unknown keys are rejected (an
  * unrecognized key is nearly always a typo'd option).
  */
-const mdocsConfigSchema = z.strictObject({
+const mdaicsConfigSchema = z.strictObject({
   cache: z.boolean().default(DEFAULT_CONFIG.cache),
   cachePath: relativeDirName.default(DEFAULT_CONFIG.cachePath),
   outDirName: relativeDirName.default(DEFAULT_CONFIG.outDirName),
@@ -86,19 +86,19 @@ const mdocsConfigSchema = z.strictObject({
     .default(DEFAULT_CONFIG.rootSrcDir),
 })
 
-export type MdocsConfigInput = z.input<typeof mdocsConfigSchema>
-export type MdocsConfigOutput = z.output<typeof mdocsConfigSchema>
+export type MdaicsConfigInput = z.input<typeof mdaicsConfigSchema>
+export type MdaicsConfigOutput = z.output<typeof mdaicsConfigSchema>
 
 /**
  * Parses `input` (config file content) into a validated object, throwing
- * `MdocsError` with a message that names every offending key.
+ * `MdaicsError` with a message that names every offending key.
  * @param input - The unvalidated config input.
  * @returns The validated config (all keys present; defaults applied).
  */
-export function parseMdocsConfig(input: unknown): MdocsConfigOutput {
-  const result = mdocsConfigSchema.safeParse(input)
+export function parseMdaicsConfig(input: unknown): MdaicsConfigOutput {
+  const result = mdaicsConfigSchema.safeParse(input)
   if (result.success) return result.data
-  throw new MdocsError('INVALID_CONFIG', formatIssues(result.error))
+  throw new MdaicsError('INVALID_CONFIG', formatIssues(result.error))
 }
 
 /**
@@ -135,9 +135,9 @@ function formatIssues(error: z.ZodError): string {
 const nodeEnvSchema = z.enum(['development', 'test', 'production'])
 const flagSchema = z.string()
 
-/** The subset of `process.env` mdocs reads, validated and typed. */
+/** The subset of `process.env` mdaics reads, validated and typed. */
 export interface ProcessEnv {
-  /** `MDOCS_DEBUG` — truthy values enable stack traces in CLI errors. */
+  /** `MDAICS_DEBUG` — truthy values enable stack traces in CLI errors. */
   debug: boolean
   /** NO_COLOR flag (1|true|yes|on, case-insensitive). Accepted but unused; see README. */
   noColor: boolean
@@ -146,14 +146,14 @@ export interface ProcessEnv {
 }
 
 /**
- * Validates the environment variables mdocs consumes. Never throws: unknown
+ * Validates the environment variables mdaics consumes. Never throws: unknown
  * variables are ignored and invalid values fall back to safe defaults.
  * @param env - The raw environment (missing keys fall back to defaults).
  * @returns The parsed `NODE_ENV` value.
  */
 export function parseProcessEnv(env: NodeJS.ProcessEnv = process.env): ProcessEnv {
   const nodeEnv = nodeEnvSchema.safeParse(env['NODE_ENV'])
-  const debug = flagSchema.safeParse(env['MDOCS_DEBUG'])
+  const debug = flagSchema.safeParse(env['MDAICS_DEBUG'])
   const noColor = flagSchema.safeParse(env['NO_COLOR'])
   return {
     ...(nodeEnv.success ? { nodeEnv: nodeEnv.data } : {}),

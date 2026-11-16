@@ -40,8 +40,8 @@
 <dt><a href="#rootSrcDirEntry">rootSrcDirEntry</a></dt>
 <dd><p>One src dir: a path or glob pattern (unexpanded here — resolved later).</p>
 </dd>
-<dt><a href="#mdocsConfigSchema">mdocsConfigSchema</a></dt>
-<dd><p>Validates <code>mdocs.config.*</code> content. Unknown keys are rejected (an
+<dt><a href="#mdaicsConfigSchema">mdaicsConfigSchema</a></dt>
+<dd><p>Validates <code>mdaics.config.*</code> content. Unknown keys are rejected (an
 unrecognized key is nearly always a typo&#39;d option).</p>
 </dd>
 <dt><a href="#cacheEntryKind">cacheEntryKind</a></dt>
@@ -64,9 +64,9 @@ unrecognized key is nearly always a typo&#39;d option).</p>
 <dt><a href="#dirSegments">dirSegments(value)</a> ⇒ <code>string[]</code></dt>
 <dd><p>Splits a candidate relative dir name into its meaningful segments.</p>
 </dd>
-<dt><a href="#parseMdocsConfig">parseMdocsConfig(input)</a> ⇒ <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number | boolean; rootDistDir: string; rootSrcDir: string | string[]; }</code></dt>
+<dt><a href="#parseMdaicsConfig">parseMdaicsConfig(input)</a> ⇒ <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number | boolean; rootDistDir: string; rootSrcDir: string | string[]; }</code></dt>
 <dd><p>Parses <code>input</code> (config file content) into a validated object, throwing
-<code>MdocsError</code> with a message that names every offending key.</p>
+<code>MdaicsError</code> with a message that names every offending key.</p>
 </dd>
 <dt><a href="#envFlag">envFlag(value)</a> ⇒ <code>boolean</code></dt>
 <dd><p>Truthy interpretation for flag-style environment variables.</p>
@@ -75,7 +75,7 @@ unrecognized key is nearly always a typo&#39;d option).</p>
 <dd><p>Flattens a ZodError into one <code>key: message</code> sentence per issue.</p>
 </dd>
 <dt><a href="#parseProcessEnv">parseProcessEnv(env)</a> ⇒ <code>ProcessEnv</code></dt>
-<dd><p>Validates the environment variables mdocs consumes. Never throws: unknown
+<dd><p>Validates the environment variables mdaics consumes. Never throws: unknown
 variables are ignored and invalid values fall back to safe defaults.</p>
 </dd>
 <dt><a href="#parseCacheFile">parseCacheFile(input)</a> ⇒ <code>{ entries: Record&lt;string, { fp: string; issues: string[]; kind: &quot;md&quot; | &quot;tdata&quot;; lastUsed: number; symbols: number; doclets?: Record&lt;string, unknown&gt;[]; markdown?: string; skipped?: &quot;no-jsdoc&quot;; }&gt;; version: 1; }</code></dt>
@@ -173,10 +173,10 @@ One src dir: a path or glob pattern (unexpanded here — resolved later).
 **Kind**: global constant  
 src: src/schema.ts:66  
 dist: dist/schema.js:56
-<a name="mdocsConfigSchema"></a>
+<a name="mdaicsConfigSchema"></a>
 
-## mdocsConfigSchema
-Validates `mdocs.config.*` content. Unknown keys are rejected (an
+## mdaicsConfigSchema
+Validates `mdaics.config.*` content. Unknown keys are rejected (an
 unrecognized key is nearly always a typo'd option).
 
 **Kind**: global constant  
@@ -228,11 +228,11 @@ Splits a candidate relative dir name into its meaningful segments.
 
 src: src/schema.ts:35  
 dist: dist/schema.js:31
-<a name="parseMdocsConfig"></a>
+<a name="parseMdaicsConfig"></a>
 
-## parseMdocsConfig(input) ⇒ <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number \| boolean; rootDistDir: string; rootSrcDir: string \| string[]; }</code>
+## parseMdaicsConfig(input) ⇒ <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number \| boolean; rootDistDir: string; rootSrcDir: string \| string[]; }</code>
 Parses `input` (config file content) into a validated object, throwing
-`MdocsError` with a message that names every offending key.
+`MdaicsError` with a message that names every offending key.
 
 **Kind**: global function  
 **Returns**: <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number \| boolean; rootDistDir: string; rootSrcDir: string \| string[]; }</code> - The validated config (all keys present; defaults applied).  
@@ -274,7 +274,7 @@ dist: dist/schema.js:102
 <a name="parseProcessEnv"></a>
 
 ## parseProcessEnv(env) ⇒ <code>ProcessEnv</code>
-Validates the environment variables mdocs consumes. Never throws: unknown
+Validates the environment variables mdaics consumes. Never throws: unknown
 variables are ignored and invalid values fall back to safe defaults.
 
 **Kind**: global function  

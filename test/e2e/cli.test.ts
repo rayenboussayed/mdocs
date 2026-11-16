@@ -1,5 +1,5 @@
 /**
- * End-to-end tests for the `mdocs` CLI binary (compiled `dist/cli.js`),
+ * End-to-end tests for the `mdaics` CLI binary (compiled `dist/cli.js`),
  * spawned as a child process against copies of the fixtures. jsdoc-api's
  * import creates `~/.jsdoc-api`, so `HOME` is redirected per test.
  */
@@ -27,7 +27,7 @@ interface CliResult {
  * @returns The absolute path of the directory.
  */
 async function homeCopy(): Promise<string> {
-  return mkdtemp(join(tmpdir(), 'mdocs-home-'))
+  return mkdtemp(join(tmpdir(), 'mdaics-home-'))
 }
 
 /**
@@ -36,7 +36,7 @@ async function homeCopy(): Promise<string> {
  * @returns The absolute path of the copied project.
  */
 async function projectCopy(fixture: string): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cli-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cli-'))
   const dest = join(dir, 'proj')
   await cp(join(fixtures, fixture), dest, { recursive: true })
   return dest
@@ -73,7 +73,7 @@ test('cli: --no-cache produces no cache file and exits 0', async () => {
 
   const result = await spawn(dir, home, ['--no-cache'])
   expect(result.code).toBe(0)
-  await expect(access(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+  await expect(access(join(dir, '.mdaicscache'))).rejects.toThrow(/ENOENT/)
 })
 
 test('cli: missing dist folder prints one stderr warning, exits 0, docs omit dist lines', async () => {
@@ -84,7 +84,7 @@ test('cli: missing dist folder prints one stderr warning, exits 0, docs omit dis
 
   const result = await spawn(dir, home, [])
   expect(result.code).toBe(0)
-  const warnings = result.stderr.split('\n').filter((line) => line.startsWith('mdocs: warning:'))
+  const warnings = result.stderr.split('\n').filter((line) => line.startsWith('mdaics: warning:'))
   expect(warnings).toHaveLength(1)
   expect(warnings[0]).toMatch(/dist folder not found/i)
   expect(result.stdout).toMatch(/1 doc\(s\) written/)
@@ -97,7 +97,7 @@ test('cli: --help exits 0 and prints usage', async () => {
   onTestFinished(() => rm(home, { force: true, recursive: true }))
   const result = await spawn(process.cwd(), home, ['--help'])
   expect(result.code).toBe(0)
-  expect(result.stdout).toMatch(/mdocs \[options\] \[rootSrcDir\.\.\.\]/)
+  expect(result.stdout).toMatch(/mdaics \[options\] \[rootSrcDir\.\.\.\]/)
 })
 
 test('cli: --version exits 0 and prints a semver', async () => {

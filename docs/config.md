@@ -1,12 +1,12 @@
 ## Functions
 
 <dl>
-<dt><a href="#defineConfig">defineConfig(config)</a> ⇒ <code>MdocsConfigExport</code></dt>
+<dt><a href="#defineConfig">defineConfig(config)</a> ⇒ <code>MdaicsConfigExport</code></dt>
 <dd><p>Identity helper for typed configs, mirroring vite&#39;s <code>defineConfig</code>:
 <code>export default defineConfig({ … })</code>. Purely an authoring aid — validation
 happens in <code>resolveConfig</code>, after the config is loaded.</p>
 </dd>
-<dt><a href="#loadConfig">loadConfig(cwd, explicitPath, overrides)</a> ⇒ <code>Promise&lt;{ config: ResolvedMdocsConfig; filePath: string | undefined; }&gt;</code></dt>
+<dt><a href="#loadConfig">loadConfig(cwd, explicitPath, overrides)</a> ⇒ <code>Promise&lt;{ config: ResolvedMdaicsConfig; filePath: string | undefined; }&gt;</code></dt>
 <dd><p>Locates, loads, evaluates and validates the config file for <code>cwd</code>.</p>
 <p>When no config file exists and no explicit path was given, the run falls
 back to the default configuration (vite behavior) and <code>filePath</code> is
@@ -16,10 +16,10 @@ throws.</p>
 programmatic call) are merged over the file&#39;s config — an override always
 wins for its own key, everything else comes from the file.</p>
 </dd>
-<dt><a href="#resolveConfig">resolveConfig(raw)</a> ⇒ <code>ResolvedMdocsConfig</code></dt>
-<dd><p>Resolves and validates a user-facing config into a <code>ResolvedMdocsConfig</code>.</p>
+<dt><a href="#resolveConfig">resolveConfig(raw)</a> ⇒ <code>ResolvedMdaicsConfig</code></dt>
+<dd><p>Resolves and validates a user-facing config into a <code>ResolvedMdaicsConfig</code>.</p>
 </dd>
-<dt><a href="#configLoadError">configLoadError(filePath, cause)</a> ⇒ <code>MdocsError</code></dt>
+<dt><a href="#configLoadError">configLoadError(filePath, cause)</a> ⇒ <code>MdaicsError</code></dt>
 <dd><p>Wraps config-loading failures with a consistent code and message.</p>
 </dd>
 <dt><a href="#definedOverrides">definedOverrides(overrides)</a> ⇒ <code>Record&lt;string, unknown&gt;</code></dt>
@@ -91,23 +91,23 @@ the config keep working — with a hidden, unique name, removed afterwards.</p>
 
 <a name="defineConfig"></a>
 
-## defineConfig(config) ⇒ <code>MdocsConfigExport</code>
+## defineConfig(config) ⇒ <code>MdaicsConfigExport</code>
 Identity helper for typed configs, mirroring vite's `defineConfig`:
 `export default defineConfig({ … })`. Purely an authoring aid — validation
 happens in `resolveConfig`, after the config is loaded.
 
 **Kind**: global function  
-**Returns**: <code>MdocsConfigExport</code> - The config export, unchanged.  
+**Returns**: <code>MdaicsConfigExport</code> - The config export, unchanged.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| config | <code>MdocsConfigExport</code> | The typed config object, function, or promise of either. |
+| config | <code>MdaicsConfigExport</code> | The typed config object, function, or promise of either. |
 
 src: src/config.ts:80  
 dist: dist/config.js:38
 <a name="loadConfig"></a>
 
-## loadConfig(cwd, explicitPath, overrides) ⇒ <code>Promise&lt;{ config: ResolvedMdocsConfig; filePath: string \| undefined; }&gt;</code>
+## loadConfig(cwd, explicitPath, overrides) ⇒ <code>Promise&lt;{ config: ResolvedMdaicsConfig; filePath: string \| undefined; }&gt;</code>
 Locates, loads, evaluates and validates the config file for `cwd`.
 
 When no config file exists and no explicit path was given, the run falls
@@ -120,7 +120,7 @@ programmatic call) are merged over the file's config — an override always
 wins for its own key, everything else comes from the file.
 
 **Kind**: global function  
-**Returns**: <code>Promise&lt;{ config: ResolvedMdocsConfig; filePath: string \| undefined; }&gt;</code> - The resolved config and the file (if any) it came from.  
+**Returns**: <code>Promise&lt;{ config: ResolvedMdaicsConfig; filePath: string \| undefined; }&gt;</code> - The resolved config and the file (if any) it came from.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -132,11 +132,11 @@ src: src/config.ts:102
 dist: dist/config.js:58
 <a name="resolveConfig"></a>
 
-## resolveConfig(raw) ⇒ <code>ResolvedMdocsConfig</code>
-Resolves and validates a user-facing config into a `ResolvedMdocsConfig`.
+## resolveConfig(raw) ⇒ <code>ResolvedMdaicsConfig</code>
+Resolves and validates a user-facing config into a `ResolvedMdaicsConfig`.
 
 **Kind**: global function  
-**Returns**: <code>ResolvedMdocsConfig</code> - The frozen, fully-resolved config.  
+**Returns**: <code>ResolvedMdaicsConfig</code> - The frozen, fully-resolved config.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -146,11 +146,11 @@ src: src/config.ts:131
 dist: dist/config.js:85
 <a name="configLoadError"></a>
 
-## configLoadError(filePath, cause) ⇒ <code>MdocsError</code>
+## configLoadError(filePath, cause) ⇒ <code>MdaicsError</code>
 Wraps config-loading failures with a consistent code and message.
 
 **Kind**: global function  
-**Returns**: <code>MdocsError</code> - A `MdocsError` with code `CONFIG_LOAD_FAILED`.  
+**Returns**: <code>MdaicsError</code> - A `MdaicsError` with code `CONFIG_LOAD_FAILED`.  
 
 | Param | Type | Description |
 | --- | --- | --- |

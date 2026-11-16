@@ -30,14 +30,14 @@ test('createTypeProgram: zero files yields null', () => {
 })
 
 test('createTypeProgram: missing root names are tolerated, lookups return null', () => {
-  const program = createTypeProgram([join(tmpdir(), 'does-not-exist-mdocs.ts')])
+  const program = createTypeProgram([join(tmpdir(), 'does-not-exist-mdaics.ts')])
   expect(program).not.toBeNull()
-  const hit = lookup(program as NonNullable<typeof program>, join(tmpdir(), 'does-not-exist-mdocs.ts'), 'anything')
+  const hit = lookup(program as NonNullable<typeof program>, join(tmpdir(), 'does-not-exist-mdaics.ts'), 'anything')
   expect(hit).toBeNull()
 })
 
 test('module-level arrow function consts are indexed by their variable name', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'fns.ts')
   await writeUtf8(src, 'export const makeEntry = (key: string, value: number): string => key + value\n')
@@ -51,7 +51,7 @@ test('module-level arrow function consts are indexed by their variable name', as
 })
 
 test('class fields initialized to arrow functions are indexed as qualified members', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'component.tsx')
   await writeUtf8(src, 'export class Button {\n  onClick = (event: MouseEvent): void => { void event }\n}\n')
@@ -61,7 +61,7 @@ test('class fields initialized to arrow functions are indexed as qualified membe
 })
 
 test('destructured object parameter properties are indexed individually', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'destructure.ts')
   await writeUtf8(
@@ -78,7 +78,7 @@ test('destructured object parameter properties are indexed individually', async 
 })
 
 test('array destructured parameters are indexed individually', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'array.ts')
   await writeUtf8(src, 'export function sum([a, b]: number[]): number {\n  return a + b\n}\n')
@@ -91,7 +91,7 @@ test('array destructured parameters are indexed individually', async () => {
 })
 
 test('nested destructured parameters are indexed individually', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'nested.ts')
   await writeUtf8(src, 'export function h({ outer: { inner } }: { outer: { inner: string } }): string {\n  return inner\n}\n')
@@ -103,7 +103,7 @@ test('nested destructured parameters are indexed individually', async () => {
 })
 
 test('classes with the same member name stay ambiguous for plain lookups', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'ambiguous.ts')
   await writeUtf8(src, 'class A { m(): number { return 1 } }\nclass B { m(): string { return "b" } }\nexport { A, B }\n')
@@ -115,7 +115,7 @@ test('classes with the same member name stay ambiguous for plain lookups', async
 })
 
 test('qualified miss falls back to the plain-name index', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'fallback.ts')
   await writeUtf8(src, 'export function add(a: number, b: number): number {\n  return a + b\n}\n')
@@ -125,7 +125,7 @@ test('qualified miss falls back to the plain-name index', async () => {
 })
 
 test('files absent from the program return null, not an error', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(fixtures, 'regular-repo-ts', 'src', 'math.ts')
   const program = createTypeProgram([src])
@@ -134,7 +134,7 @@ test('files absent from the program return null, not an error', async () => {
 })
 
 test('private and computed member names are not indexed', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'declared.ts')
   await writeUtf8(src, 'export class C {\n  #hidden(): number { return 1 }\n  ["computed"](): string { return "x" }\n}\n')
@@ -145,7 +145,7 @@ test('private and computed member names are not indexed', async () => {
 })
 
 test('get accessor members are indexed as methods', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'accessor.ts')
   await writeUtf8(src, 'export class C {\n  get area(): number { return 42 }\n}\n')
@@ -155,7 +155,7 @@ test('get accessor members are indexed as methods', async () => {
 })
 
 test('syntactically broken .ts files do not crash the program; injection stays best-effort', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'broken.ts')
   await writeUtf8(src, 'export function broken(a: (((b {\n')
@@ -172,7 +172,7 @@ test('syntactically broken .ts files do not crash the program; injection stays b
 })
 
 test('string-literal method names are indexed by their source text', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'string-name.ts')
   await writeUtf8(src, 'export class C {\n  "my-prop"(): number { return 1 }\n}\n')
@@ -182,7 +182,7 @@ test('string-literal method names are indexed by their source text', async () =>
 })
 
 test('two class fields with the same arrow-function name stay ambiguous for plain lookups', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'dupe-fields.ts')
   await writeUtf8(src, 'class A { render = (): number => 1 }\nclass B { render = (): string => "b" }\nexport { A, B }\n')
@@ -193,7 +193,7 @@ test('two class fields with the same arrow-function name stay ambiguous for plai
 })
 
 test('array-of-arrays destructuring indexes nested leaves', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'array-of-arrays.ts')
   await writeUtf8(src, 'export function g([[a, b], c]: number[][]): number {\n  return a + b + c\n}\n')
@@ -207,7 +207,7 @@ test('array-of-arrays destructuring indexes nested leaves', async () => {
 })
 
 test('string-literal property names in destructuring are indexed by their key', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'string-props.ts')
   await writeUtf8(src, 'export function f({ "my-prop": value }: { "my-prop": string }): string {\n  return value\n}\n')
@@ -219,7 +219,7 @@ test('string-literal property names in destructuring are indexed by their key', 
 })
 
 test('class fields with computed names and private identifiers are not indexed', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'private-computed.ts')
   await writeUtf8(src, 'export class C {\n  #hidden = (): number => 1\n  ["computed"] = (): string => "s"\n}\n')
@@ -230,7 +230,7 @@ test('class fields with computed names and private identifiers are not indexed',
 })
 
 test('numeric-literal method names are indexed by their source text', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'numeric.ts')
   await writeUtf8(src, 'export class C {\n  42(): number { return 42 }\n}\n')
@@ -240,7 +240,7 @@ test('numeric-literal method names are indexed by their source text', async () =
 })
 
 test('anonymous default-export functions are skipped without crashing', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'anonymous.ts')
   await writeUtf8(src, 'export default function () {\n  return 1\n}\n')
@@ -250,7 +250,7 @@ test('anonymous default-export functions are skipped without crashing', async ()
 })
 
 test('class fields without initializers are not indexed', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-tscheck-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-tscheck-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const src = join(dir, 'uninitialized.ts')
   await writeUtf8(src, 'export class Empty {\n  callback: () => void\n}\n')

@@ -56,7 +56,7 @@ const renderBody = renderBlock
 source = source.slice(0, renderStart) + renderBody + source.slice(renderEnd)
 
 // --- Stage the patched copy and emit declarations from it -----------------
-const scratch = mkdtempSync(join(tmpdir(), 'mdocs-types-'))
+const scratch = mkdtempSync(join(tmpdir(), 'mdaics-types-'))
 try {
   const staged = join(scratch, 'index.js')
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- scratch is a fresh mkdtemp dir created by this script; the path is joined, not user input

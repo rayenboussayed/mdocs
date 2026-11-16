@@ -5,7 +5,7 @@
   ],
   "entry": [
     "test/bench/**/*.ts",
-    "mdocs.config.js"
+    "mdaics.config.js"
   ],
   "ignore": [
     "test/*.test.ts",

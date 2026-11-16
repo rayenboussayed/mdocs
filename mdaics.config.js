@@ -1,5 +1,5 @@
 /**
- * Dogfooding config for mdocs itself: point the CLI at this repository's
+ * Dogfooding config for mdaics itself: point the CLI at this repository's
  * source tree and produce the markdown API docs in `docs/` (gitignored).
  *
  * Regenerate with `node dist/cli.js` from the repository root — the same

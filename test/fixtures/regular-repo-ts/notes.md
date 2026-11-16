@@ -3,7 +3,7 @@
 Built with:
 
 ```
-node <mdocs-root>/node_modules/typescript/bin/tsc -p tsconfig.json
+node <mdaics-root>/node_modules/typescript/bin/tsc -p tsconfig.json
 ```
 
 (`rootDir: src`, `outDir: dist`, `target/module: es2022`, `sourceMap + declaration + declarationMap: true`, `removeComments: false`.)

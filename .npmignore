@@ -1,4 +1,4 @@
-# mdocs publishes only what remains after these excludes:
+# mdaics publishes only what remains after these excludes:
 #   dist/**, README.md, LICENSE, package.json, CHANGELOG.md
 #   (plus npm's always-included main/bin entry points).
 # NOTE: there is deliberately no `files` field in package.json — this file is
@@ -20,15 +20,15 @@ vitest.config.ts
 eslint.config.js
 knip.json
 commitlint.config.js
-mdocs.config.js
+mdaics.config.js
 
 # repo bookkeeping
 AGENTS.md
 .gitignore
 .eslintcache
 
-# mdocs build artifacts (never publish)
-.mdocscache
-.mdocscache.tmp-*
+# mdaics build artifacts (never publish)
+.mdaicscache
+.mdaicscache.tmp-*
 *.tgz
 *.tsbuildinfo

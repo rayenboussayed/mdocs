@@ -1,5 +1,5 @@
 /**
- * The mdocs pipeline, end to end:
+ * The mdaics pipeline, end to end:
  *
  *   load config → resolve project roots (regular repo + monorepo) → collect
  *   source files → transpile/copy into a scratch dir → jsdoc → enrich with
@@ -17,7 +17,7 @@ import type { Cache, CacheEntry, FileFingerprints } from './cache.js'
 import type { RenderFileResult } from './render.js'
 
 import { createCache, distMaterialOf, fileFingerprints, lockfileFingerprint, programFingerprint, sweepDeclarations, toolchainFingerprint } from './cache.js'
-import { loadConfig, type MdocsConfig } from './config.js'
+import { loadConfig, type MdaicsConfig } from './config.js'
 import { errorMessage } from './errors.js'
 import { mapPool } from './pool.js'
 import { distJsPathFor, renderSourceFile, writeTemplatePartials } from './render.js'
@@ -33,8 +33,8 @@ export interface ProjectSummary {
   srcDir: string
 }
 
-/** Options for one mdocs run. Config keys are merged over the config file. */
-export interface RunOptions extends MdocsConfig {
+/** Options for one mdaics run. Config keys are merged over the config file. */
+export interface RunOptions extends MdaicsConfig {
   /** Explicit config file path (beats auto-discovery). */
   configPath?: string
   /** Working directory for config lookup and relative roots. Default: `process.cwd()`. */

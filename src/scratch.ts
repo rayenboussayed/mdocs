@@ -25,7 +25,7 @@ export interface Scratch {
  * @returns The value returned by `fn`.
  */
 export async function withScratch<T>(fn: (scratch: Scratch) => Promise<T>): Promise<T> {
-  const dir = await createTempDirectory({ prefix: 'mdocs-' })
+  const dir = await createTempDirectory({ prefix: 'mdaics-' })
   /* v8 ignore start — rm with force practically never fails; the rejection handler is defensive. */
   const cleanup = (): Promise<void> =>
     rm(dir, { force: true, recursive: true }).then(

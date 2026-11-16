@@ -30,7 +30,7 @@ export function first<T>(items: T[]): T | undefined {
   return items[0];
 }
 
-// Internal helper: exported (so mdocs sees it) but intentionally
+// Internal helper: exported (so mdaics sees it) but intentionally
 // left without JSDoc to test graceful skip of undocumented symbols.
 export function double(n: number): number {
   return n * 2;

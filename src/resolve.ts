@@ -19,9 +19,9 @@ import { glob } from 'node:fs/promises'
 import { readdir, realpath, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import type { ResolvedMdocsConfig } from './config.js'
+import type { ResolvedMdaicsConfig } from './config.js'
 
-import { errorMessage, MdocsError } from './errors.js'
+import { errorMessage, MdaicsError } from './errors.js'
 
 /** Source file extensions understood by the pipeline. */
 /** Declaration files (`.d.ts`/`.d.mts`/`.d.cts`) are not documentable — they carry no JSDoc. */
@@ -65,7 +65,7 @@ export interface CollectResult {
  * docs directory itself. Returns the files plus any non-fatal notes (e.g.
  * unreadable directories, which are skipped rather than aborting the run).
  *
- * Throws `MdocsError` `OUTPUT_COLLISION` when two source files would
+ * Throws `MdaicsError` `OUTPUT_COLLISION` when two source files would
  * produce the same `.md` path (e.g. `dup.ts` and `dup.mjs`) — that is a hard
  * error, not something to silently overwrite.
  * @param projects - The resolved projects to collect from.
@@ -137,18 +137,18 @@ export async function probeMissingDistDirs(projects: readonly ProjectRoot[]): Pr
  * Expands `config.rootSrcDir` to concrete `ProjectRoot`s.
  * @param config - The resolved config (roots and output directory names).
  * @param cwd - Base directory for relative entries and glob expansion.
- * @throws {MdocsError} `NO_ROOTS` when nothing matches, `OVERLAPPING_ROOTS`
+ * @throws {MdaicsError} `NO_ROOTS` when nothing matches, `OVERLAPPING_ROOTS`
  *   when one src dir contains another, `INVALID_ROOT` for unreadable/non-dir
  *   entries.
  * @returns The resolved projects (one per src directory).
  */
-export async function resolveProjects(config: ResolvedMdocsConfig, cwd: string): Promise<ProjectRoot[]> {
+export async function resolveProjects(config: ResolvedMdaicsConfig, cwd: string): Promise<ProjectRoot[]> {
   const candidates: string[] = []
   for (const entry of config.rootSrcDir) {
     if (GLOB_MAGIC.test(entry)) {
       const matches = await expandGlob(entry, cwd)
       if (matches.length === 0) {
-        throw new MdocsError('NO_ROOTS', `rootSrcDir pattern ${JSON.stringify(entry)} matched no directories in ${cwd}`)
+        throw new MdaicsError('NO_ROOTS', `rootSrcDir pattern ${JSON.stringify(entry)} matched no directories in ${cwd}`)
       }
       candidates.push(...matches)
     } else {
@@ -231,7 +231,7 @@ function assertNoOutputCollisions(files: readonly SourceFile[]): void {
   for (const [out, group] of byOutput) {
     if (group.length > 1) {
       const names = group.map((f) => f.relPath).join(', ')
-      throw new MdocsError('OUTPUT_COLLISION', `source files ${names} would all produce ${out} — rename one of them`)
+      throw new MdaicsError('OUTPUT_COLLISION', `source files ${names} would all produce ${out} — rename one of them`)
     }
   }
 }
@@ -249,7 +249,7 @@ function assertNoOverlappingRoots(roots: readonly string[]): void {
       const inner = roots[j] as string
       const rel = relative(outer, inner)
       if (rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))) {
-        throw new MdocsError(
+        throw new MdaicsError(
           'OVERLAPPING_ROOTS',
           `rootSrcDir entries overlap: ${JSON.stringify(inner)} is inside ${JSON.stringify(outer)} — document each project exactly once`,
         )
@@ -288,7 +288,7 @@ async function expandGlob(pattern: string, cwd: string): Promise<string[]> {
   }
 
   if (directories.length === 0 && matches.length > 0) {
-    throw new MdocsError('NO_ROOTS', `rootSrcDir pattern ${JSON.stringify(pattern)} matched files but no directories in ${cwd}`)
+    throw new MdaicsError('NO_ROOTS', `rootSrcDir pattern ${JSON.stringify(pattern)} matched files but no directories in ${cwd}`)
   }
   return directories
 }
@@ -324,10 +324,10 @@ async function requireDirectory(path: string): Promise<string> {
     // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
     stats = await stat(path)
   } catch (cause) {
-    throw new MdocsError('INVALID_ROOT', `rootSrcDir entry not found: ${path}`, { cause })
+    throw new MdaicsError('INVALID_ROOT', `rootSrcDir entry not found: ${path}`, { cause })
   }
   if (!stats.isDirectory()) {
-    throw new MdocsError('INVALID_ROOT', `rootSrcDir entry is not a directory: ${path}`)
+    throw new MdaicsError('INVALID_ROOT', `rootSrcDir entry is not a directory: ${path}`)
   }
   /* v8 ignore next 6 — defense in depth: config validation guarantees a plain relative dir name, so this cannot trigger through the public API. */
   try {

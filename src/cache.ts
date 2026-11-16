@@ -1,7 +1,7 @@
 /**
- * The mdocs render cache — a two-tier, content-addressed memo for the
+ * The mdaics render cache — a two-tier, content-addressed memo for the
  * per-file work of the pipeline, stored in a single JSON file (default
- * `<cwd>/.mdocscache`; override with the `cachePath` config key).
+ * `<cwd>/.mdaicscache`; override with the `cachePath` config key).
  *
  * Tiers (the key space is prefixed by tier):
  *
@@ -24,7 +24,7 @@
  *
  * Failure posture: the cache never fails a run. A corrupt, unreadable or
  * outdated cache is a miss — the file is treated as empty; a failed write is
- * a note in `RunResult.issues`. Two concurrent mdocs processes in the same
+ * a note in `RunResult.issues`. Two concurrent mdaics processes in the same
  * cwd are best-effort: one may drop the other's entries, never corrupt them
  * (entries are fp-tagged, so a wrong-fp hit cannot serve; the worst case is
  * a re-render).
@@ -55,7 +55,7 @@ const CACHE_FORMAT = 1
 /** Maximum entries kept; least-recently-used are evicted first. */
 const CACHE_CAP = 4096
 /** Distinguishes cache behavior across renderer/output-format changes. */
-const RENDER_FORMAT = 'mdocs-render-v2'
+const RENDER_FORMAT = 'mdaics-render-v2'
 /** Cap on .d.ts declaration files swept into the program fingerprint. */
 const DTS_SWEEP_CAP = 512
 
@@ -270,7 +270,7 @@ export async function sweepDeclarations(srcDirs: readonly string[], cap: number 
 
 /**
  * Computes the cache fingerprint of the toolchain — everything about the
- * installed mdocs + jsdoc + TypeScript that can shape the rendered output.
+ * installed mdaics + jsdoc + TypeScript that can shape the rendered output.
  * @returns A sha256 hex digest.
  */
 export function toolchainFingerprint(): string {

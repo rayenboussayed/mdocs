@@ -5,21 +5,21 @@
 import { ensureDirectory } from 'jutilities/node/fs/dir'
 import { readFile, writeFile } from 'node:fs/promises'
 
-import { isMdocsError, type MdocsError } from './errors.js'
+import { isMdaicsError, type MdaicsError } from './errors.js'
 
 /**
- * Asserts that `fn` throws an `MdocsError`, returning it for further
+ * Asserts that `fn` throws an `MdaicsError`, returning it for further
  * assertions. Re-throws the original error untouched when it is not an
- * `MdocsError`, so unexpected failure modes stay loud.
- * @param fn - The function expected to throw an `MdocsError`.
- * @returns The `MdocsError` it threw.
+ * `MdaicsError`, so unexpected failure modes stay loud.
+ * @param fn - The function expected to throw an `MdaicsError`.
+ * @returns The `MdaicsError` it threw.
  */
-export async function expectMdocsError(fn: () => unknown): Promise<MdocsError> {
+export async function expectMdaicsError(fn: () => unknown): Promise<MdaicsError> {
   try {
     await fn()
-    throw new Error('expected the function to throw an MdocsError')
+    throw new Error('expected the function to throw an MdaicsError')
   } catch (error) {
-    if (!isMdocsError(error)) throw error
+    if (!isMdaicsError(error)) throw error
     return error
   }
 }

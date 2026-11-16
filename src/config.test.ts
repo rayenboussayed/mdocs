@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { expect, onTestFinished, test } from 'vitest'
 
 import { DEFAULT_CONFIG, defineConfig, loadConfig, resolveConfig } from './config.js'
-import { expectMdocsError, mkdirp, writeUtf8 } from './test-utils.js'
+import { expectMdaicsError, mkdirp, writeUtf8 } from './test-utils.js'
 
 test('defineConfig returns the typed config (identity)', () => {
   const cfg = { rootSrcDir: 'lib' }
@@ -20,19 +20,19 @@ test('resolveConfig applies defaults for an empty object', () => {
   expect(resolved.rootDistDir).toBe('dist')
   expect(resolved.outDirName).toBe('docs')
   expect(resolved.cache).toBe(true)
-  expect(resolved.cachePath).toBe('.mdocscache')
+  expect(resolved.cachePath).toBe('.mdaicscache')
   expect(Number.isInteger(resolved.parallelism)).toBe(true)
   expect(resolved.parallelism).toBeGreaterThanOrEqual(1)
 })
 
 test('resolveConfig rejects bad cache options', async () => {
-  const badCache = await expectMdocsError(() => resolveConfig({ cache: 'yes' }))
+  const badCache = await expectMdaicsError(() => resolveConfig({ cache: 'yes' }))
   expect(badCache.message).toMatch(/cache/)
-  const badCachePath = await expectMdocsError(() => resolveConfig({ cachePath: '' }))
+  const badCachePath = await expectMdaicsError(() => resolveConfig({ cachePath: '' }))
   expect(badCachePath.message).toMatch(/cachePath/)
-  const absolute = await expectMdocsError(() => resolveConfig({ cachePath: '/absolute/path' }))
+  const absolute = await expectMdaicsError(() => resolveConfig({ cachePath: '/absolute/path' }))
   expect(absolute.message).toMatch(/cachePath/)
-  const escape = await expectMdocsError(() => resolveConfig({ cachePath: '../escape' }))
+  const escape = await expectMdaicsError(() => resolveConfig({ cachePath: '../escape' }))
   expect(escape.message).toMatch(/\.\./)
 })
 
@@ -57,13 +57,13 @@ test('resolveConfig allows nested relative dir names', () => {
 
 test('resolveConfig rejects non-object configs', async () => {
   for (const bad of [null, 42, 'src', [], true]) {
-    const error = await expectMdocsError(() => resolveConfig(bad))
+    const error = await expectMdaicsError(() => resolveConfig(bad))
     expect(error.code).toBe('INVALID_CONFIG')
   }
 })
 
 test('resolveConfig rejects unknown keys with the allowed list', async () => {
-  const error = await expectMdocsError(() => resolveConfig({ rootSrc: 'src' }))
+  const error = await expectMdaicsError(() => resolveConfig({ rootSrc: 'src' }))
   expect(error.message).toMatch(/unknown config key/)
   expect(error.message).toMatch(/rootSrcDir/)
   expect(error.message).toMatch(/cachePath/)
@@ -71,18 +71,18 @@ test('resolveConfig rejects unknown keys with the allowed list', async () => {
 
 test('resolveConfig rejects bad rootSrcDir shapes', async () => {
   expect(() => resolveConfig({ rootSrcDir: 42 })).toThrow(/rootSrcDir/)
-  const arrayError = await expectMdocsError(() => resolveConfig({ rootSrcDir: [42] }))
+  const arrayError = await expectMdaicsError(() => resolveConfig({ rootSrcDir: [42] }))
   expect(arrayError.message).toMatch(/rootSrcDir/)
   expect(() => resolveConfig({ rootSrcDir: [] })).toThrow(/at least one/)
-  const mixedError = await expectMdocsError(() => resolveConfig({ rootSrcDir: ['src', 7] }))
+  const mixedError = await expectMdaicsError(() => resolveConfig({ rootSrcDir: ['src', 7] }))
   expect(mixedError.message).toMatch(/rootSrcDir/)
   expect(() => resolveConfig({ rootSrcDir: '   ' })).toThrow(/rootSrcDir/)
 })
 
 test('resolveConfig rejects escaping/absolute outDirName and rootDistDir', async () => {
   for (const bad of ['../escape', '/abs', 'a/../../b', '.', './', '', 'a/b/../../../c']) {
-    expect((await expectMdocsError(() => resolveConfig({ outDirName: bad }))).code).toBe('INVALID_CONFIG')
-    expect((await expectMdocsError(() => resolveConfig({ rootDistDir: bad }))).code).toBe('INVALID_CONFIG')
+    expect((await expectMdaicsError(() => resolveConfig({ outDirName: bad }))).code).toBe('INVALID_CONFIG')
+    expect((await expectMdaicsError(() => resolveConfig({ rootDistDir: bad }))).code).toBe('INVALID_CONFIG')
   }
 })
 
@@ -104,7 +104,7 @@ test('parallelism rejects 0, negatives, floats, NaN and strings', () => {
 })
 
 test('loadConfig falls back to defaults when no config exists', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const { config, filePath } = await loadConfig(dir)
   expect(filePath).toBeUndefined()
@@ -112,9 +112,9 @@ test('loadConfig falls back to defaults when no config exists', async () => {
 })
 
 test('loadConfig fails closed for an explicit missing config', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  const error = await expectMdocsError(() => loadConfig(dir, join(dir, 'nope.config.js')))
+  const error = await expectMdaicsError(() => loadConfig(dir, join(dir, 'nope.config.js')))
   expect(error.code).toBe('CONFIG_NOT_FOUND')
 })
 
@@ -122,13 +122,13 @@ interface LoadCase {
   contents: string
   extraFiles?: Record<string, string>
   file: string
-  verify: (config: import('./config.js').ResolvedMdocsConfig) => void
+  verify: (config: import('./config.js').ResolvedMdaicsConfig) => void
 }
 
 const loadCases: LoadCase[] = [
   {
     contents: 'module.exports = { rootSrcDir: ["lib"], outDirName: "md" }',
-    file: 'mdocs.config.cjs',
+    file: 'mdaics.config.cjs',
     verify: (config) => {
       expect(config.rootSrcDir).toEqual(['lib'])
       expect(config.outDirName).toBe('md')
@@ -136,7 +136,7 @@ const loadCases: LoadCase[] = [
   },
   {
     contents: 'export default { rootSrcDir: "gen", parallelism: 2 }',
-    file: 'mdocs.config.mjs',
+    file: 'mdaics.config.mjs',
     verify: (config) => {
       expect(config.rootSrcDir).toEqual(['gen'])
       expect(config.parallelism).toBe(2)
@@ -145,14 +145,14 @@ const loadCases: LoadCase[] = [
   {
     contents: 'export default { rootSrcDir: "esm-in-cjs" }',
     extraFiles: { 'package.json': '{"type":"commonjs"}' },
-    file: 'mdocs.config.js',
+    file: 'mdaics.config.js',
     verify: (config) => {
       expect(config.rootSrcDir).toEqual(['esm-in-cjs'])
     },
   },
   {
     contents: 'export default (env) => ({ rootSrcDir: ["fn-" + env.command] })',
-    file: 'mdocs.config.mjs',
+    file: 'mdaics.config.mjs',
     verify: (config) => {
       expect(config.rootSrcDir).toEqual(['fn-build'])
     },
@@ -160,7 +160,7 @@ const loadCases: LoadCase[] = [
 ]
 
 test.each(loadCases)('loadConfig loads $file', async ({ contents, extraFiles, file, verify }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   for (const [name, body] of Object.entries(extraFiles ?? {})) {
     await writeUtf8(join(dir, name), body)
@@ -176,25 +176,25 @@ test.each([
   { contents: 'export default null', message: 'received null', name: 'null' },
   { contents: 'export default [1, 2]', message: 'received an array', name: 'an array' },
 ])('loadConfig rejects a config exporting $name', async ({ contents, message }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), contents)
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), contents)
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('INVALID_CONFIG')
   expect(error.message).toContain(message)
 })
 
 test('loadConfig merges programmatic overrides over the file config', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), 'export default { rootSrcDir: "from-file", outDirName: "md" }')
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), 'export default { rootSrcDir: "from-file", outDirName: "md" }')
   const { config } = await loadConfig(dir, undefined, { rootSrcDir: 'override' })
   expect(config.rootSrcDir).toEqual(['override'])
   expect(config.outDirName).toBe('md')
 })
 
 test('a directory full of nothing yields CONFIG_NOT_FOUND-independent defaults', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'sub'))
   const { filePath } = await loadConfig(join(dir, 'sub'))
@@ -202,9 +202,9 @@ test('a directory full of nothing yields CONFIG_NOT_FOUND-independent defaults',
 })
 
 test('loadConfig: an unreadable explicit --config path fails closed', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  const error = await expectMdocsError(() => loadConfig(dir, join(dir, 'nope.config.js')))
+  const error = await expectMdaicsError(() => loadConfig(dir, join(dir, 'nope.config.js')))
   expect(error.code).toBe('CONFIG_NOT_FOUND')
 })
 
@@ -213,29 +213,29 @@ test.each([
   { contents: 'export default { rootSrcDir: ["fallback-esm"] }', expected: ['fallback-esm'], name: 'ESM syntax in a .js config falls back to a sibling .mjs copy', packageType: 'commonjs' },
   { contents: 'const cfg = await Promise.resolve({ rootSrcDir: ["tla"] })\nexport default cfg', expected: ['tla'], name: 'a top-level-await .js config loads through the ESM fallback', packageType: 'commonjs' },
 ])('loadConfig: $name', async ({ contents, expected, packageType }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), JSON.stringify({ type: packageType }))
-  await writeUtf8(join(dir, 'mdocs.config.js'), contents)
+  await writeUtf8(join(dir, 'mdaics.config.js'), contents)
   const { config, filePath } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(expected)
-  expect(filePath).toBe(join(dir, 'mdocs.config.js'))
+  expect(filePath).toBe(join(dir, 'mdaics.config.js'))
 })
 
 test('loadConfig: a .js config with a plain syntax error fails with CONFIG_LOAD_FAILED', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), '{"type":"commonjs"}')
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'module.exports = {\n')
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'module.exports = {\n')
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
 })
 
 test('loadConfig: a .cjs config with ESM syntax does NOT fall back — it fails with CONFIG_LOAD_FAILED', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.cjs'), 'export default {}')
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.cjs'), 'export default {}')
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
 })
 
@@ -243,52 +243,52 @@ test.each([
   { contents: 'export default Promise.resolve({ rootSrcDir: ["promised"] })', expected: ['promised'], name: 'a promise-export is resolved before validation' },
   { contents: 'export const rootSrcDir = "named"', expected: ['named'], name: 'named exports are picked up as config keys' },
 ])('loadConfig: $name', async ({ contents, expected }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), contents)
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), contents)
   const { config } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(expected)
 })
 
 test('loadConfig: nearest package.json determines the loader for .js configs', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await mkdirp(join(dir, 'sub', 'nested'))
   await writeUtf8(join(dir, 'package.json'), '{"type":"module"}')
-  await writeUtf8(join(dir, 'sub', 'nested', 'mdocs.config.js'), 'export default { rootSrcDir: ["nested-module"] }')
+  await writeUtf8(join(dir, 'sub', 'nested', 'mdaics.config.js'), 'export default { rootSrcDir: ["nested-module"] }')
   const { config } = await loadConfig(join(dir, 'sub', 'nested'))
   expect(config.rootSrcDir).toEqual(['nested-module'])
 })
 
 test('loadConfig: an invalid nearest package.json fails .js configs with CONFIG_LOAD_FAILED', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   // Node resolves the nearest package.json eagerly — a broken one fails the
-  // require before mdocs ever sees the config; the failure must be wrapped, not raw.
+  // require before mdaics ever sees the config; the failure must be wrapped, not raw.
   await writeUtf8(join(dir, 'package.json'), '{')
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default { rootSrcDir: ["broken-pkg-json"] }')
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default { rootSrcDir: ["broken-pkg-json"] }')
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
 })
 
 test('loadConfig: a .mjs config is loaded even when the nearest package.json is invalid', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), '{')
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), 'export default { rootSrcDir: ["mjs-no-pkg-json"] }')
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), 'export default { rootSrcDir: ["mjs-no-pkg-json"] }')
   const { config } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(['mjs-no-pkg-json'])
 })
 
 test('loadConfig: unsupported extensions are rejected', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.yaml'), 'rootSrcDir: src')
-  await expect(loadConfig(dir, join(dir, 'mdocs.config.yaml'))).rejects.toThrow(/unsupported config extension/)
+  await writeUtf8(join(dir, 'mdaics.config.yaml'), 'rootSrcDir: src')
+  await expect(loadConfig(dir, join(dir, 'mdaics.config.yaml'))).rejects.toThrow(/unsupported config extension/)
 })
 
 test('resolveConfig: empty rootSrcDir array is rejected', async () => {
-  const error = await expectMdocsError(() => resolveConfig({ rootSrcDir: [] }))
+  const error = await expectMdaicsError(() => resolveConfig({ rootSrcDir: [] }))
   expect(error.message).toMatch(/at least one/)
 })
 
@@ -300,69 +300,69 @@ test('parseProcessEnv: valid NODE_ENV is kept, invalid is dropped', async () => 
 
 test('parseProcessEnv: boolean-like flags are decoded case-insensitively', async () => {
   const { parseProcessEnv } = await import('./schema.js')
-  expect(parseProcessEnv({ MDOCS_DEBUG: '1' } as NodeJS.ProcessEnv).debug).toBe(true)
-  expect(parseProcessEnv({ MDOCS_DEBUG: 'TRUE' } as NodeJS.ProcessEnv).debug).toBe(true)
-  expect(parseProcessEnv({ MDOCS_DEBUG: 'yes' } as NodeJS.ProcessEnv).debug).toBe(true)
-  expect(parseProcessEnv({ MDOCS_DEBUG: '0' } as NodeJS.ProcessEnv).debug).toBe(false)
+  expect(parseProcessEnv({ MDAICS_DEBUG: '1' } as NodeJS.ProcessEnv).debug).toBe(true)
+  expect(parseProcessEnv({ MDAICS_DEBUG: 'TRUE' } as NodeJS.ProcessEnv).debug).toBe(true)
+  expect(parseProcessEnv({ MDAICS_DEBUG: 'yes' } as NodeJS.ProcessEnv).debug).toBe(true)
+  expect(parseProcessEnv({ MDAICS_DEBUG: '0' } as NodeJS.ProcessEnv).debug).toBe(false)
   expect(parseProcessEnv({ NO_COLOR: 'on' } as NodeJS.ProcessEnv).noColor).toBe(true)
   expect(parseProcessEnv({} as NodeJS.ProcessEnv).noColor).toBe(false)
 })
 
 test('loadConfig: a config whose top-level await rejects fails with CONFIG_LOAD_FAILED (with hint)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), '{"type":"commonjs"}')
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'await Promise.reject(new Error("tla boom"))\nexport default { rootSrcDir: ["x"] }')
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'await Promise.reject(new Error("tla boom"))\nexport default { rootSrcDir: ["x"] }')
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
-  expect(error.message).toMatch(/rename the file to mdocs\.config\.mjs/)
+  expect(error.message).toMatch(/rename the file to mdaics\.config\.mjs/)
 })
 
 test('loadConfig: a config rejecting with a string surfaces the message', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), '{"type":"commonjs"}')
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'await Promise.reject("string boom")\nexport default {}')
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'await Promise.reject("string boom")\nexport default {}')
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
   expect(error.message).toContain('string boom')
 })
 
 test('loadConfig: a package.json with a foreign "type" falls back to the ESM sibling path', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   await writeUtf8(join(dir, 'package.json'), '{"type":"widget"}')
-  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default { rootSrcDir: ["foreign-type"] }')
+  await writeUtf8(join(dir, 'mdaics.config.js'), 'export default { rootSrcDir: ["foreign-type"] }')
   const { config } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(['foreign-type'])
 })
 
-test('parseMdocsConfig: non-object input produces a root-level message without a key prefix', async () => {
-  const { parseMdocsConfig } = await import('./schema.js')
-  const error = await expectMdocsError(() => parseMdocsConfig('junk' as never))
+test('parseMdaicsConfig: non-object input produces a root-level message without a key prefix', async () => {
+  const { parseMdaicsConfig } = await import('./schema.js')
+  const error = await expectMdaicsError(() => parseMdaicsConfig('junk' as never))
   expect(error.code).toBe('INVALID_CONFIG')
   expect(error.message).not.toMatch(/^: /)
 })
 
 test('loadConfig: a .cjs config exporting a promise resolves to a plain object', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.cjs'), 'module.exports = Promise.resolve({ rootSrcDir: ["cjs-promised"] })')
+  await writeUtf8(join(dir, 'mdaics.config.cjs'), 'module.exports = Promise.resolve({ rootSrcDir: ["cjs-promised"] })')
   const { config } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(['cjs-promised'])
 })
 
 test('overrides with undefined values fall back to the file config', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const { loadConfig } = await import('./config.js')
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), 'export default { rootSrcDir: ["from-file"] }')
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), 'export default { rootSrcDir: ["from-file"] }')
   const { config } = await loadConfig(dir, undefined, { rootSrcDir: undefined } as never)
   expect(config.rootSrcDir).toEqual(['from-file'])
 })
 
 test('loadConfig: function-form config without a valid NODE_ENV falls back to production mode', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
   const original = process.env['NODE_ENV']
   process.env['NODE_ENV'] = 'banana'
@@ -370,7 +370,7 @@ test('loadConfig: function-form config without a valid NODE_ENV falls back to pr
     if (original === undefined) delete process.env['NODE_ENV']
     else process.env['NODE_ENV'] = original
   })
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), 'export default (env) => ({ rootSrcDir: ["mode-" + env.mode] })')
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), 'export default (env) => ({ rootSrcDir: ["mode-" + env.mode] })')
   const { config } = await loadConfig(dir)
   expect(config.rootSrcDir).toEqual(['mode-production'])
 })
@@ -380,10 +380,10 @@ test.each([
   { contents: 'export default () => { throw new Error("fn boom") }', message: 'fn boom', name: 'a function-form config that throws' },
   { contents: 'export default Promise.reject(new Error("promise boom"))', message: 'promise boom', name: 'a promise-export that rejects' },
 ])('loadConfig: $name fails with CONFIG_LOAD_FAILED', async ({ contents, message }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-cfg-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-cfg-'))
   onTestFinished(() => rm(dir, { force: true, recursive: true }))
-  await writeUtf8(join(dir, 'mdocs.config.mjs'), contents)
-  const error = await expectMdocsError(() => loadConfig(dir))
+  await writeUtf8(join(dir, 'mdaics.config.mjs'), contents)
+  const error = await expectMdaicsError(() => loadConfig(dir))
   expect(error.code).toBe('CONFIG_LOAD_FAILED')
   expect(error.message).toContain(message)
 })

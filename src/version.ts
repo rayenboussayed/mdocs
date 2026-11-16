@@ -1,5 +1,5 @@
 /**
- * The mdocs package version, read from the shipped `package.json`.
+ * The mdaics package version, read from the shipped `package.json`.
  *
  * Used by the CLI (`--version`) and by the render cache's toolchain
  * fingerprint — a version bump always invalidates cached renders.
@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs'
 
 /**
- * Reads the mdocs package version from the packaged `package.json`.
+ * Reads the mdaics package version from the packaged `package.json`.
  * @returns The version, or `0.0.0-unknown` when it is unreadable.
  */
 export function packageVersion(): string {

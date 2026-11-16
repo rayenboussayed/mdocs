@@ -77,7 +77,7 @@ beforeEach(() => {
 })
 
 test('jsdoc throwing → fail result with message (and jsdoc called twice — retry once)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockRejectedValueOnce(new Error('jsdoc crashed')).mockRejectedValueOnce(new Error('jsdoc crashed'))
@@ -93,7 +93,7 @@ test('jsdoc throwing → fail result with message (and jsdoc called twice — re
 })
 
 test('jsdoc failing once then succeeding renders (retry absorbed)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockRejectedValueOnce(new Error('flaky')).mockResolvedValue([doclet(1)])
@@ -111,7 +111,7 @@ test('jsdoc failing once then succeeding renders (retry absorbed)', async () => 
 })
 
 test('render throwing → fail result with message', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockResolvedValue([doclet(1)])
@@ -127,7 +127,7 @@ test('render throwing → fail result with message', async () => {
 })
 
 test('jsdoc throwing a non-Error value formats the message safely', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockRejectedValueOnce('jsdoc just died').mockRejectedValueOnce('jsdoc just died')
@@ -142,7 +142,7 @@ test('jsdoc throwing a non-Error value formats the message safely', async () => 
 })
 
 test('empty rendered markdown → per-file failure, never a silent 0-byte .md', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'single.mjs': '/** Greets. */\nexport default function greet(name) { return name }\n' })
     mocks.getTemplateData.mockResolvedValue([doclet(1)])
@@ -159,7 +159,7 @@ test('empty rendered markdown → per-file failure, never a silent 0-byte .md', 
 })
 
 test('doclets beyond the emitted lines fall back to jsdoc lines with (approx.)', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     // Two doclets, both out of range of the transpile output and both missing dist info.
@@ -173,9 +173,9 @@ test('doclets beyond the emitted lines fall back to jsdoc lines with (approx.)',
     expect(result.markdown).toBe('rendered docs')
     // Neither pointer can be mapped — the doclets dmd receives must carry (approx.) src and no dist line.
     const renderArgs = mocks.render.mock.calls[0]?.[0] as {
-      data: Array<{ mdocs?: { dist?: string; src: string }; meta?: { lineno?: number } }>
+      data: Array<{ mdaics?: { dist?: string; src: string }; meta?: { lineno?: number } }>
     }
-    const byLine = new Map(renderArgs.data.map((doclet) => [doclet.meta?.lineno, doclet.mdocs]))
+    const byLine = new Map(renderArgs.data.map((doclet) => [doclet.meta?.lineno, doclet.mdaics]))
     for (const lineno of [998, 999]) {
       expect(byLine.get(lineno)?.src).toMatch(/\(approx\.\)$/)
       expect(byLine.get(lineno)?.dist).toBeUndefined()
@@ -186,7 +186,7 @@ test('doclets beyond the emitted lines fall back to jsdoc lines with (approx.)',
 })
 
 test('dist folder present but the dist file is missing suppresses the dist line and keeps one note', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.js': 'export const x = 1\n' })
     await mkdirp(join(dir, 'dist')) // folder exists, file does not
@@ -196,8 +196,8 @@ test('dist folder present but the dist file is missing suppresses the dist line 
       { file: sourceFile('x.js', '.js', dir), index: 0 },
       { outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
     )
-    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdocs?: { dist?: string; src: string } }> }
-    expect(renderArgs.data[0]?.mdocs?.dist).toBeUndefined()
+    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdaics?: { dist?: string; src: string } }> }
+    expect(renderArgs.data[0]?.mdaics?.dist).toBeUndefined()
     expect(result.issues.filter((issue) => issue.includes('dist file not found'))).toHaveLength(1)
   } finally {
     await rm(dir, { force: true, recursive: true })
@@ -205,7 +205,7 @@ test('dist folder present but the dist file is missing suppresses the dist line 
 })
 
 test('a missing dist folder suppresses the dist line without touching the fs per file', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockResolvedValue([doclet(1)])
@@ -214,8 +214,8 @@ test('a missing dist folder suppresses the dist line without touching the fs per
       { file: sourceFile('x.ts', '.ts', dir), index: 0 },
       { missingDistDirs: new Set([join(dir, 'dist')]), outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
     )
-    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdocs?: { dist?: string; src: string } }> }
-    expect(renderArgs.data[0]?.mdocs?.dist).toBeUndefined()
+    const renderArgs = mocks.render.mock.calls[0]?.[0] as { data: Array<{ mdaics?: { dist?: string; src: string } }> }
+    expect(renderArgs.data[0]?.mdaics?.dist).toBeUndefined()
     expect(result.issues.filter((issue) => issue.includes('dist file not found'))).toHaveLength(0)
   } finally {
     await rm(dir, { force: true, recursive: true })
@@ -223,7 +223,7 @@ test('a missing dist folder suppresses the dist line without touching the fs per
 })
 
 test('a tier-2 cache hit skips the jsdoc child entirely', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.js': 'export const x = 1\n' })
     mocks.getTemplateData.mockImplementation(() => {
@@ -251,7 +251,7 @@ test('a tier-2 cache hit skips the jsdoc child entirely', async () => {
 })
 
 test('a tier-2 cache miss stores raw template data with scratch paths scrubbed', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.js': 'export const x = 1\n' })
     mocks.getTemplateData.mockResolvedValue([{ kind: 'function', meta: { filename: 'file.js', lineno: 1, path: '/scratch/0' }, name: 'x' }])
@@ -281,7 +281,7 @@ test('a tier-2 cache miss stores raw template data with scratch paths scrubbed',
 })
 
 test('two doclets hitting the same "dist sourcemap missing" issue are deduped', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.js': 'export const x = 1\nexport const y = 2\n' })
     await mkdirp(join(dir, 'dist'))
@@ -299,7 +299,7 @@ test('two doclets hitting the same "dist sourcemap missing" issue are deduped', 
 })
 
 test('reading a directory as a source file fails with "cannot read source"', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     const srcDir = join(dir, 'src', 'a-dir')
     await mkdirp(srcDir)
@@ -314,7 +314,7 @@ test('reading a directory as a source file fails with "cannot read source"', asy
 })
 
 test('jsdoc hanging forever hits the timeout error', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockReturnValue(new Promise(() => undefined)) // never settles
@@ -329,7 +329,7 @@ test('jsdoc hanging forever hits the timeout error', async () => {
 })
 
 test('a scratchDir pointing at a file fails with "cannot create the scratch directory"', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     const blocker = join(dir, 'scratch-blocker')
@@ -346,7 +346,7 @@ test('a scratchDir pointing at a file fails with "cannot create the scratch dire
 })
 
 test('dmd stderr warnings are swallowed (no scratch-path leaks) and the file still renders', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  const dir = await mkdtemp(join(tmpdir(), 'mdaics-render-'))
   try {
     await setup(dir, { 'x.ts': 'export const x = 1\n' })
     mocks.getTemplateData.mockResolvedValue([doclet(1)])
