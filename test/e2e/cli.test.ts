@@ -65,6 +65,17 @@ async function spawn(cwd: string, home: string, args: string[], env?: NodeJS.Pro
   }
 }
 
+test('cli: --no-cache produces no cache file and exits 0', async () => {
+  const home = await homeCopy()
+  onTestFinished(() => rm(home, { force: true, recursive: true }))
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  const result = await spawn(dir, home, ['--no-cache'])
+  expect(result.code).toBe(0)
+  await expect(access(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+})
+
 test('cli: missing dist folder prints one stderr warning, exits 0, docs omit dist lines', async () => {
   const home = await homeCopy()
   onTestFinished(() => rm(home, { force: true, recursive: true }))

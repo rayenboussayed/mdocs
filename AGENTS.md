@@ -34,13 +34,15 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
   return types come from the TS checker index (`tscheck.ts`), never from the
   JSDoc comment; JSDoc wins only when the checker says `any`.
 - `src:`/`dist:` pointers are relative to the run's `cwd` (the workspace root), not absolute and not package-root-relative.
-- Validation is centralized in `src/schema.ts` (zod, `strictObject`) — the single trust boundary for config and `process.env`. **Do not re-add redundant guards** in `run.ts`/`render.ts`/`resolve.ts`/`pool.ts`; earlier defensive re-checks were removed on purpose.
+- Validation is centralized in `src/schema.ts` (zod, `strictObject`) — the single trust boundary for config, `process.env` and the on-disk cache. **Do not re-add redundant guards** in `run.ts`/`render.ts`/`resolve.ts`/`pool.ts`/`cache.ts`; earlier defensive re-checks were removed on purpose.
 - Unreachable-by-design code is allowed but must carry a justified `/* v8 ignore ... */` comment; never weaken the 100% thresholds in `vitest.config.ts`.
 - `console.warn` is swallowed only inside the dmd render section, which is serialized through a promise gate (`withWarnSunk`) — pool workers must not race the patch. Other dmd warnings (`getTemplateData`) are NOT sunk.
 - `run()` deletes `JSDOC_PATH` from `process.env`; env access goes through `parseProcessEnv` only (invalid values silently fall back to defaults — `NODE_ENV` selects the function-form config's `mode`, `MDOCS_DEBUG=1` enables stack traces, `NO_COLOR` is accepted but unused).
 - `dist:` pointers are exact only when the committed `.js.map` matches the source; otherwise `(approx.)` — except when the dist file itself is missing, in which case the `dist:` line is omitted (one per-file note), and when the whole dist folder is missing, in which case every project emits no `dist:` lines (one stderr warning + one `(dist)` issue per project). Sibling `.map` reads are capped at 16 MB; inline maps are read from the last 64 KB only.
 - tsconfig is stricter than defaults: `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noUnusedLocals/Parameters`, `verbatimModuleSyntax`, `nodenext`.
 - Config load errors are wrapped in `CONFIG_LOAD_FAILED` in `loadConfig` (one choke point); loader details live in `importConfigModule`/`importEsmInCommonJsPackage`.
+- `cache` (default `true`) and `cachePath` (default `.mdocscache`) drive the mdocs-owned, content-addressed render cache. It is a local speedup — safe to delete, never to commit; this repo's `.gitignore` excludes it. Two tiers: the raw `getTemplateData()` output (skips the jsdoc child) and the finished markdown (skips everything, including the TS program). `--no-cache` disables it for one run; `cache: false` disables it in config.
+- The cache is read at run start and written once at run end (tmp file + atomic rename, mode `0600`). Corrupt or unreadable files are a miss, never a hard error. Cache keys are cwd-relative posix paths; content fingerprints cover source text + TS program + dist map + toolchain versions.
 
 ## Lint & doc style
 

@@ -33,6 +33,12 @@ dist folders are returned so the run can omit dist pointers and warn.</p>
 <dt><a href="#resolveProjects">resolveProjects(config, cwd)</a> ⇒ <code>Promise&lt;ProjectRoot[]&gt;</code></dt>
 <dd><p>Expands <code>config.rootSrcDir</code> to concrete <code>ProjectRoot</code>s.</p>
 </dd>
+<dt><a href="#toPosix">toPosix(path)</a> ⇒ <code>string</code></dt>
+<dd><p>POSIX-style relative path (forward slashes).</p>
+</dd>
+<dt><a href="#walkFiles">walkFiles(dir, issues)</a> ⇒ <code>Promise&lt;string[]&gt;</code></dt>
+<dd><p>Recursively lists files under <code>dir</code>, never following directory symlinks.</p>
+</dd>
 <dt><a href="#assertNoOutputCollisions">assertNoOutputCollisions(files)</a></dt>
 <dd><p>Fails the whole run when two files in one project would write the same
 <code>.md</code> — that is a configuration problem, not a rendering failure.</p>
@@ -53,12 +59,6 @@ matches nothing at all.</p>
 </dd>
 <dt><a href="#requireDirectory">requireDirectory(path)</a> ⇒ <code>Promise&lt;string&gt;</code></dt>
 <dd><p>Stats <code>path</code>, requiring an existing directory; returns its realpath.</p>
-</dd>
-<dt><a href="#toPosix">toPosix(path)</a> ⇒ <code>string</code></dt>
-<dd><p>POSIX-style relative path (forward slashes).</p>
-</dd>
-<dt><a href="#walkFiles">walkFiles(dir, issues)</a> ⇒ <code>Promise&lt;string[]&gt;</code></dt>
-<dd><p>Recursively lists files under <code>dir</code>, never following directory symlinks.</p>
 </dd>
 </dl>
 
@@ -157,6 +157,35 @@ Expands `config.rootSrcDir` to concrete `ProjectRoot`s.
 
 src: src/resolve.ts:145  
 dist: dist/resolve.js:110
+<a name="toPosix"></a>
+
+## toPosix(path) ⇒ <code>string</code>
+POSIX-style relative path (forward slashes).
+
+**Kind**: global function  
+**Returns**: <code>string</code> - The path with forward slashes.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| path | <code>string</code> | The path to normalize. |
+
+src: src/resolve.ts:183  
+dist: dist/resolve.js:146
+<a name="walkFiles"></a>
+
+## walkFiles(dir, issues) ⇒ <code>Promise&lt;string[]&gt;</code>
+Recursively lists files under `dir`, never following directory symlinks.
+
+**Kind**: global function  
+**Returns**: <code>Promise&lt;string[]&gt;</code> - The absolute paths of the files found.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| dir | <code>string</code> | The directory to walk. |
+| issues | <code>string[]</code> | Per-run notes accumulator (unreadable directories). |
+
+src: src/resolve.ts:193  
+dist: dist/resolve.js:155
 <a name="assertNoOutputCollisions"></a>
 
 ## assertNoOutputCollisions(files)
@@ -169,8 +198,8 @@ Fails the whole run when two files in one project would write the same
 | --- | --- | --- |
 | files | <code>readonly SourceFile[]</code> | The collected files to check for colliding outputs. |
 
-src: src/resolve.ts:183  
-dist: dist/resolve.js:146
+src: src/resolve.ts:223  
+dist: dist/resolve.js:188
 <a name="assertNoOverlappingRoots"></a>
 
 ## assertNoOverlappingRoots(roots)
@@ -182,8 +211,8 @@ Rejects roots where one src directory is nested inside another.
 | --- | --- | --- |
 | roots | <code>readonly string[]</code> | The resolved source directories to validate. |
 
-src: src/resolve.ts:203  
-dist: dist/resolve.js:167
+src: src/resolve.ts:243  
+dist: dist/resolve.js:209
 <a name="expandGlob"></a>
 
 ## expandGlob(pattern, cwd) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -199,8 +228,8 @@ matches nothing at all.
 | pattern | <code>string</code> | The glob pattern to expand (against `cwd`). |
 | cwd | <code>string</code> | Base directory for relative patterns. |
 
-src: src/resolve.ts:229  
-dist: dist/resolve.js:189
+src: src/resolve.ts:269  
+dist: dist/resolve.js:231
 <a name="isSourceExtension"></a>
 
 ## isSourceExtension(extension) ⇒ <code>boolean</code>
@@ -213,8 +242,8 @@ Narrows a raw extension to `SourceExtension`.
 | --- | --- | --- |
 | extension | <code>string</code> | The raw extension to test. |
 
-src: src/resolve.ts:261  
-dist: dist/resolve.js:221
+src: src/resolve.ts:301  
+dist: dist/resolve.js:263
 <a name="lowerExtension"></a>
 
 ## lowerExtension(absPath) ⇒ <code>string</code>
@@ -227,8 +256,8 @@ Lower-cased file extension including the dot.
 | --- | --- | --- |
 | absPath | <code>string</code> | Absolute path of the file. |
 
-src: src/resolve.ts:270  
-dist: dist/resolve.js:229
+src: src/resolve.ts:310  
+dist: dist/resolve.js:271
 <a name="requireDirectory"></a>
 
 ## requireDirectory(path) ⇒ <code>Promise&lt;string&gt;</code>
@@ -241,34 +270,5 @@ Stats `path`, requiring an existing directory; returns its realpath.
 | --- | --- | --- |
 | path | <code>string</code> | The path to check. |
 
-src: src/resolve.ts:281  
-dist: dist/resolve.js:239
-<a name="toPosix"></a>
-
-## toPosix(path) ⇒ <code>string</code>
-POSIX-style relative path (forward slashes).
-
-**Kind**: global function  
-**Returns**: <code>string</code> - The path with forward slashes.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| path | <code>string</code> | The path to normalize. |
-
-src: src/resolve.ts:306  
-dist: dist/resolve.js:265
-<a name="walkFiles"></a>
-
-## walkFiles(dir, issues) ⇒ <code>Promise&lt;string[]&gt;</code>
-Recursively lists files under `dir`, never following directory symlinks.
-
-**Kind**: global function  
-**Returns**: <code>Promise&lt;string[]&gt;</code> - The absolute paths of the files found.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| dir | <code>string</code> | The directory to walk. |
-| issues | <code>string[]</code> | Per-run notes accumulator (unreadable directories). |
-
-src: src/resolve.ts:316  
-dist: dist/resolve.js:274
+src: src/resolve.ts:321  
+dist: dist/resolve.js:281

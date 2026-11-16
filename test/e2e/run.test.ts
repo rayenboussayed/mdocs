@@ -128,6 +128,72 @@ test('dist folder present but the dist file missing suppresses only that file', 
   expect(result.issues.filter((issue) => issue.issue.includes('dist file not found'))).toHaveLength(1)
 })
 
+test('warm cache: second run hits the cache and writes identical docs', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  const first = await run({ cwd: dir, parallelism: false })
+  expect(first.cache?.misses).toBe(first.written.length + first.skipped.length)
+  const mathBefore = await readUtf8(join(dir, 'docs', 'math.md'))
+
+  const second = await run({ cwd: dir, parallelism: false })
+  expect(second.cache?.hits).toBe(second.written.length + second.skipped.length)
+  expect(second.cache?.misses).toBe(0)
+  expect(await readUtf8(join(dir, 'docs', 'math.md'))).toBe(mathBefore)
+})
+
+test('cached markdown restores docs deleted between runs', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  await run({ cwd: dir, parallelism: false })
+  await rm(join(dir, 'docs'), { force: true, recursive: true })
+  const result = await run({ cwd: dir, parallelism: false })
+  expect(result.failed).toHaveLength(0)
+  expect(result.cache?.hits).toBe(result.written.length + result.skipped.length)
+  expect((await readUtf8(join(dir, 'docs', 'math.md'))).length).toBeGreaterThan(0)
+})
+
+test('cache: false disables the cache entirely (no file is created)', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  const result = await run({ cache: false, cwd: dir, parallelism: false })
+  expect(result.failed).toHaveLength(0)
+  expect(result.cache).toBeUndefined()
+  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+})
+
+test('a corrupt cache file is ignored: run succeeds, one cache note recorded', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  await writeUtf8(join(dir, '.mdocscache'), '{{{ corrupt')
+  const result = await run({ cwd: dir, parallelism: false })
+  expect(result.failed).toHaveLength(0)
+  expect(result.written.length).toBeGreaterThanOrEqual(2)
+  expect(result.issues.some((issue) => /cache/i.test(issue.issue))).toBe(true)
+})
+
+test('config file cache: false disables the render cache', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  await writeUtf8(join(dir, 'mdocs.config.js'), 'export default { cache: false }\n')
+  const result = await run({ cwd: dir, parallelism: false })
+  expect(result.failed).toHaveLength(0)
+  expect(result.cache).toBeUndefined()
+  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+})
+
+test('--dry-run never creates or touches the cache', async () => {
+  const dir = await projectCopy('regular-repo-ts')
+  onTestFinished(() => rm(dir, { force: true, recursive: true }))
+
+  await run({ cwd: dir, dryRun: true })
+  await expect(readUtf8(join(dir, '.mdocscache'))).rejects.toThrow(/ENOENT/)
+})
+
 test('monorepo: a package without dist loses dist lines, the other keeps them', async () => {
   const dir = await projectCopy('monorepo')
   onTestFinished(() => rm(dir, { force: true, recursive: true }))

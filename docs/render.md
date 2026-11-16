@@ -21,6 +21,11 @@
 <dt><a href="#computePointers">computePointers(file, data, transpileMapper, issues, pointerBase, distFolderMissing)</a> ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code></dt>
 <dd><p>Computes the per-doclet src/dist pointer map, keyed by generated line</p>
 </dd>
+<dt><a href="#fetchTemplateData">fetchTemplateData(scratchFile, deps, file, timeoutMs)</a> ⇒ <code>Promise&lt;DmdDoclet[]&gt;</code></dt>
+<dd><p>Fetches template data for one file, reusing the tier-2 cache when possible.
+A cache hit skips the jsdoc child process; everything else (normalize,
+pointer injection, checker types, render) still runs fresh.</p>
+</dd>
 <dt><a href="#pointerPath">pointerPath(base, absPath)</a> ⇒ <code>string</code></dt>
 <dd><p>Renders an absolute path relative to the workspace root, posix-style.</p>
 </dd>
@@ -60,7 +65,7 @@ referring to a different source (stale build, foreign map).</p>
 The two handlebars partials injected into dmd.
 
 **Kind**: global constant  
-src: src/render.ts:68  
+src: src/render.ts:69  
 dist: dist/render.js:40
 <a name="DIST_EXTENSION"></a>
 
@@ -68,8 +73,8 @@ dist: dist/render.js:40
 Dist extensions that differ from `source.slice(1)` (everything else strips the dot).
 
 **Kind**: global constant  
-src: src/render.ts:362  
-dist: dist/render.js:287
+src: src/render.ts:405  
+dist: dist/render.js:319
 <a name="renderSourceFile"></a>
 
 ## renderSourceFile(job, deps) ⇒ <code>Promise&lt;RenderFileResult&gt;</code>
@@ -81,7 +86,9 @@ Renders one source file into markdown (or reports why it could not).
 | Param | Type | Description |
 | --- | --- | --- |
 | job | <code>RenderFileJob</code> | The file to render and its pool index. |
-| deps | <code>{ missingDistDirs?: ReadonlySet&lt;string&gt;; outPath: string; partials: readonly string[]; pointerBase: string; scratchDir: string; timeoutMs?: number; typeProgram: null \| TypeProgram; }</code> | Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout). |
+| deps | <code>{ cache?: Cache; fingerprints?: ReadonlyMap&lt;string, FileFingerprints&gt;; missingDistDirs?: ReadonlySet&lt;string&gt;; outPath: string; partials: readonly string[]; pointerBase: string; scratchDir: string; timeoutMs?: number; typeProgram: null \| TypeProgram; }</code> | Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout). |
+| deps.cache |  | A loaded cache (absent ⇒ cache disabled). |
+| deps.fingerprints |  | The per-file cache fingerprints (absent ⇒ cache disabled). |
 | deps.missingDistDirs |  | Absolute distDirs known to be missing/not-directories (probed once per project by the run); for those projects no `dist:` line is emitted. |
 | deps.scratchDir |  | Per-file scratch directory for the transpiled/copied source. |
 | deps.partials |  | The handlebars partial override files (dmd template). |
@@ -90,8 +97,8 @@ Renders one source file into markdown (or reports why it could not).
 | deps.pointerBase |  | Absolute base for cwd-relative `src:`/`dist:` pointers. |
 | deps.timeoutMs |  | jsdoc render timeout in milliseconds. |
 
-src: src/render.ts:98  
-dist: dist/render.js:64
+src: src/render.ts:101  
+dist: dist/render.js:66
 <a name="writeTemplatePartials"></a>
 
 ## writeTemplatePartials(scratchDir) ⇒ <code>Promise&lt;string[]&gt;</code>
@@ -104,8 +111,8 @@ Writes the two injected partials into the run's scratch directory.
 | --- | --- | --- |
 | scratchDir | <code>string</code> | Scratch directory that will hold `partials/`. |
 
-src: src/render.ts:197  
-dist: dist/render.js:135
+src: src/render.ts:194  
+dist: dist/render.js:128
 <a name="computePointers"></a>
 
 ## computePointers(file, data, transpileMapper, issues, pointerBase, distFolderMissing) ⇒ <code>Promise&lt;Map&lt;number, SymbolPointer&gt;&gt;</code>
@@ -123,8 +130,29 @@ Computes the per-doclet src/dist pointer map, keyed by generated line
 | pointerBase | <code>string</code> |  | Absolute base for cwd-relative `src:`/`dist:` pointers. |
 | distFolderMissing | <code>boolean</code> | <code>false</code> | `true` when the project's dist folder was probed missing; the dist lookup is skipped entirely. |
 
-src: src/render.ts:219  
-dist: dist/render.js:156
+src: src/render.ts:216  
+dist: dist/render.js:149
+<a name="fetchTemplateData"></a>
+
+## fetchTemplateData(scratchFile, deps, file, timeoutMs) ⇒ <code>Promise&lt;DmdDoclet[]&gt;</code>
+Fetches template data for one file, reusing the tier-2 cache when possible.
+A cache hit skips the jsdoc child process; everything else (normalize,
+pointer injection, checker types, render) still runs fresh.
+
+**Kind**: global function  
+**Returns**: <code>Promise&lt;DmdDoclet[]&gt;</code> - The normalized doclets.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| scratchFile | <code>string</code> | The transpiled/copied source inside the scratch dir. |
+| deps | <code>{ cache?: Cache; fingerprints?: ReadonlyMap&lt;string, FileFingerprints&gt;; }</code> | The render deps (may carry a `cache` and per-file `fingerprints`). |
+| deps.cache |  | The loaded cache, or absent when caching is disabled. |
+| deps.fingerprints |  | The per-file fingerprints, or absent when caching is disabled. |
+| file | <code>SourceFile</code> | The source file being rendered. |
+| timeoutMs | <code>number</code> | The jsdoc render timeout in milliseconds. |
+
+src: src/render.ts:255  
+dist: dist/render.js:180
 <a name="pointerPath"></a>
 
 ## pointerPath(base, absPath) ⇒ <code>string</code>
@@ -138,8 +166,8 @@ Renders an absolute path relative to the workspace root, posix-style.
 | base | <code>string</code> | The absolute base the returned path is relative to. |
 | absPath | <code>string</code> | The absolute path to render. |
 
-src: src/render.ts:252  
-dist: dist/render.js:181
+src: src/render.ts:295  
+dist: dist/render.js:213
 <a name="prepareForJsdoc"></a>
 
 ## prepareForJsdoc(file, srcText, scratchDir) ⇒ <code>Promise&lt;PreparedFile&gt;</code>
@@ -154,8 +182,8 @@ Transpiles (.ts family) or copies (.js family) the source for jsdoc.
 | srcText | <code>string</code> | The source text. |
 | scratchDir | <code>string</code> | Per-file scratch directory to write into. |
 
-src: src/render.ts:263  
-dist: dist/render.js:191
+src: src/render.ts:306  
+dist: dist/render.js:223
 <a name="resolveDistPointer"></a>
 
 ## resolveDistPointer(srcLine, transpileMapper, dist, issues) ⇒ <code>string</code>
@@ -174,8 +202,8 @@ recorded instead.
 | dist | <code>DistPointerContext</code> | Dist lookup context (kind, mapper, pointer path) computed once per file. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:330  
-dist: dist/render.js:259
+src: src/render.ts:373  
+dist: dist/render.js:291
 <a name="resolveSrcLine"></a>
 
 ## resolveSrcLine(generatedLine, transpileMapper) ⇒ <code>{ srcApprox: boolean; srcLine: number; }</code>
@@ -189,8 +217,8 @@ Maps a doclet's generated line back to the original source line.
 | generatedLine | <code>number</code> | The jsdoc-reported line in the generated file. |
 | transpileMapper | <code>SourceLineMapper</code> | Mapper from the transpile emit, or `null` for pass-through copies. |
 
-src: src/render.ts:351  
-dist: dist/render.js:278
+src: src/render.ts:394  
+dist: dist/render.js:310
 <a name="distJsPathFor"></a>
 
 ## distJsPathFor(file) ⇒ <code>string</code>
@@ -203,8 +231,8 @@ dist `.js` path for a source file: sibling rootDistDir, same relative path.
 | --- | --- | --- |
 | file | <code>SourceFile</code> | The source file whose dist counterpart is wanted. |
 
-src: src/render.ts:392  
-dist: dist/render.js:298
+src: src/render.ts:435  
+dist: dist/render.js:330
 <a name="distMapperFor"></a>
 
 ## distMapperFor(distJs, srcAbsPath, issues) ⇒ <code>Promise&lt;DistMapperResult&gt;</code>
@@ -220,8 +248,8 @@ referring to a different source (stale build, foreign map).
 | srcAbsPath | <code>string</code> | Absolute path of the original source file the map must reference. |
 | issues | <code>string[]</code> | Per-file notes accumulator. |
 
-src: src/render.ts:406  
-dist: dist/render.js:311
+src: src/render.ts:449  
+dist: dist/render.js:343
 <a name="fail"></a>
 
 ## fail(file, outPath, message, issues) ⇒ <code>RenderFileResult</code>
@@ -237,8 +265,8 @@ Builds the failure result shape.
 | message | <code>string</code> | Why the render failed. |
 | issues | <code>string[]</code> | Notes collected before the failure. |
 
-src: src/render.ts:441  
-dist: dist/render.js:342
+src: src/render.ts:484  
+dist: dist/render.js:374
 <a name="noteOnce"></a>
 
 ## noteOnce(issues, issue)
@@ -251,8 +279,8 @@ Adds an issue once per file.
 | issues | <code>string[]</code> | The per-file notes accumulator (deduplicated in place). |
 | issue | <code>string</code> | The note to add. |
 
-src: src/render.ts:450  
-dist: dist/render.js:350
+src: src/render.ts:493  
+dist: dist/render.js:382
 <a name="withWarnSunk"></a>
 
 ## withWarnSunk(fn) ⇒ <code>Promise&lt;T&gt;</code>
@@ -265,5 +293,5 @@ Runs `fn` with `console.warn` silenced; the patch is never re-entered concurrent
 | --- | --- | --- |
 | fn | <code>() &#x3D;&gt; Promise&lt;T&gt;</code> | The operation whose warnings are sunk. |
 
-src: src/render.ts:465  
-dist: dist/render.js:364
+src: src/render.ts:508  
+dist: dist/render.js:396

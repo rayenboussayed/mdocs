@@ -151,15 +151,18 @@ All options are optional. The config file is looked up in the current working di
 | `rootDistDir` | `string`             | `'dist'` | Name of the build-output directory, resolved as a sibling of each source directory. Used only for the `dist:` pointer lines. Nested names like `'build/output'` are allowed. |
 | `outDirName`  | `string`             | `'docs'` | Name of the directory the generated markdown is written to, resolved as a sibling of each source directory. Nested names like `'docs/api'` are allowed. |
 | `parallelism` | `boolean \| number`  | `true`   | `true` = an in-process promise pool sized to the available CPU cores. A number = pool size (1–1024). `false` = sequential. Note: this is not `worker_threads` — concurrency comes from spawning jsdoc processes. |
+| `cache`       | `boolean`            | `true`   | Enable the render cache. Omitted or `true` reads `.mdocscache` and reuses renders for unchanged files. `false` (or `--no-cache`) bypasses it — no read, no write. |
+| `cachePath`   | `string`             | `'.mdocscache'` | Where the cache is written, resolved against the working directory. Must be a relative path without `..` and without absolute paths. Nested names like `'.cache/mdocs'` are allowed. |
 
 **Precedence:** CLI flags / positional arguments > config file > built-in defaults.
 
 **Validation** (zod-validated — a malformed config fails before a single file is written):
 
-- Unknown keys are an error — only the four keys above are accepted.
+- Unknown keys are an error — only the six keys above are accepted.
 - `rootSrcDir` must be a string or a non-empty array of strings. A glob that matches **no directories** is a hard error, so a typo cannot silently generate zero docs.
-- `rootDistDir` and `outDirName` must be relative paths without `..` and without absolute paths.
+- `rootDistDir`, `outDirName` and `cachePath` must be relative paths without `..` and without absolute paths.
 - `parallelism` must be `true`, `false`, or an integer between 1 and 1024.
+- `cache` must be a boolean.
 - Two `rootSrcDir` entries may not overlap (one nested in another) — the same files would be documented twice.
 
 ### `defineConfig`
@@ -253,6 +256,7 @@ mdocs [options] [rootSrcDir...]
 | `--out-dir-name <name>`          | `docs`                                            | Name of the directory the markdown is written to. |
 | `--parallelism <true\|false\|N>`  | `true`                                            | Worker pool size. |
 | `--dry-run`                      | `false`                                           | Print the planned writes without writing anything. |
+| `--no-cache`                     | (from config, default on)                          | Disable the render cache for this run. |
 | `--verbose`                      | `false`                                           | Print resolved settings, per-file writes, skips and notes. |
 | `-v, --version`                  | —                                                 | Print the version and exit. |
 | `-h, --help`                     | —                                                 | Show help and exit. |
@@ -268,6 +272,7 @@ mdocs --out-dir-name api-docs           # write to ./api-docs instead of ./docs
 mdocs --parallelism false               # single process
 mdocs --parallelism 8                   # an eight-way pool
 mdocs --dry-run                         # show what would be written
+mdocs --no-cache                        # ignore the render cache (use for benchmarking / CI debugging)
 mdocs --verbose                         # explain everything
 ```
 
@@ -481,7 +486,9 @@ export class UserRepository {
 
 **The `dist:` line depends on your build.** For exact positions, `dist/` must be built from the same sources (same `sourceMap` setting). A `dist/` built with different options, or without `sourceMap`, yields `(approx.)` pointers instead. If no `dist/` has been built at all, or a file's `.js` has no counterpart, no `dist:` line is emitted and a single warning/issue is recorded instead.
 
-**Caching.** The jsdoc analysis cache is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files.
+**Caching.** mdocs keeps a **render cache** enabled by default: it stores per-file results in a single content-addressed JSON file at `<cwd>/.mdocscache` (configurable with `cachePath`, disableable with `cache: false` or `mdocs --no-cache`). Two tiers are kept — the raw template data returned by jsdoc-to-markdown (skips the jsdoc child process), and the finished markdown (skips everything, including the TypeScript program). Cache keys are content fingerprints (source text, the whole TS program for `.ts` files, the `dist` map, and the toolchain version), never absolute paths, and the cache never contains output for files that failed to render. The jsdoc analysis cache itself is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files.
+
+**Caching.** The jsdoc analysis cache is disabled — mdocs passes `no-cache` on every invocation (a fresh scratch directory can never produce a hit, so the cache would only grow). You may see `~/.jsdoc-api` created at import time by `jsdoc-api`; it holds no cache files. The mdocs render cache is separate and lives at `<cwd>/.mdocscache` — see the FAQ and the config table.
 
 **Output is overwritten, not merged.** Each run regenerates the affected `*.md` files. Files in the output folder that mdocs did not generate are left alone.
 
@@ -499,6 +506,8 @@ export class UserRepository {
 | `1`  | Something failed — the config could not be loaded, a source file could not be read/written, jsdoc failed, or the CLI arguments were invalid. The reason is printed to stderr. |
 
 **Does mdocs run my build?** No. It only reads `dist/` if it is already there.
+
+**Can I commit the `.mdocscache` file?** No. It is a local build artifact — its contents are valid only for the checkout that produced them (content fingerprints are cwd-sensitive), it is recreated automatically on every run, and it would bloat every pull request. Add `.mdocscache` to your `.gitignore`. Deleting it at any time is entirely safe — the next run simply re-renders everything.
 
 **Can I commit the generated docs?** Yes — that is the normal workflow. Add `docs/` to `.gitignore` if you would rather publish them from CI.
 
@@ -519,6 +528,7 @@ export class UserRepository {
 - The jsdoc child process inherits your environment, including `NODE_OPTIONS` and any secrets it contains. Do not run mdocs in an environment controlled by someone you do not trust. `JSDOC_PATH` is removed by mdocs so the parser cannot be relocated.
 - Output `.md` files stay inside each project's resolved `outDir` by construction: `outDirName` is validated as a relative path (no `..`, no absolute paths) and the output path is derived from the source tree's relative path.
 - Generated docs contain your source comments, examples and file paths. If your source is sensitive, the output is too.
+- The `.mdocscache` file is untrusted input: it is validated with zod at load and used only as inert data (markdown/doclets are never required, imported or evaluated). A tampered cache can alter the markdown written to your `*.md` files, never which files are read or what gets executed. If in doubt, delete the file — the next run rebuilds it from source.
 - Use `--dry-run` to see exactly which files would be written before committing to a run in an unfamiliar repository.
 
 ---

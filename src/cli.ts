@@ -10,25 +10,26 @@
  * to stderr; nothing here calls `process.exit` before commander finishes.
  */
 import { Command, InvalidArgumentError } from 'commander'
-import { readFileSync } from 'node:fs'
 
 import type { MdocsConfig } from './config.js'
 
 import { isMdocsError } from './errors.js'
 import { run, type RunOptions, type RunResult } from './run.js'
 import { parseProcessEnv } from './schema.js'
+import { packageVersion } from './version.js'
 
 const program = new Command()
 
 program
   .name('mdocs')
   .description('Generate one Markdown API doc per source file from JSDoc annotations')
-  .version(readVersion(), '-v, --version', 'print the mdocs version')
+  .version(packageVersion(), '-v, --version', 'print the mdocs version')
   .argument('[rootSrcDir...]', 'source directories to document (globs allowed; overrides the config file)')
   .option('--config <path>', 'path to the mdocs config file (default: mdocs.config.{js,mjs,cjs} in cwd)')
   .option('--root-dist-dir <name>', "name of the build output directory used for the reader pointer (default 'dist')")
   .option('--out-dir-name <name>', "name of the directory to write *.md files into, next to each src folder (default 'docs')")
   .option('--parallelism <value>', 'true (all cores) | false (sequential) | <N> workers (default: true)', parseParallelism)
+  .option('--no-cache', 'disable the render cache (default: enabled; the path comes from config `cachePath`)')
   .option('--dry-run', 'print the planned writes without writing anything', false)
   .option('--verbose', 'print resolved settings, per-file writes, skips and notes', false)
   .action(async (roots: string[], options: CliOptions) => {
@@ -52,6 +53,7 @@ program.parseAsync(process.argv).catch((error: unknown) => {
 // ---------------------------------------------------------------------------
 
 interface CliOptions {
+  cache: boolean
   config?: string
   dryRun: boolean
   outDirName?: string
@@ -72,6 +74,7 @@ async function execute(roots: string[], options: CliOptions): Promise<number> {
   if (options.rootDistDir !== undefined) overrides.rootDistDir = options.rootDistDir
   if (options.outDirName !== undefined) overrides.outDirName = options.outDirName
   if (options.parallelism !== undefined) overrides.parallelism = options.parallelism
+  if (options.cache === false) overrides.cache = false
 
   const runOptions: RunOptions = {
     cwd: process.cwd(),
@@ -159,25 +162,13 @@ function printSummary(result: RunResult, verbose: boolean): void {
 function printVerbose(result: RunResult): void {
   const { configPath, projects } = result
   console.error(`config: ${configPath ?? '(none — using defaults)'}`)
+  if (result.cache !== undefined) {
+    console.error(`cache:  ${result.cache.path} (${String(result.cache.hits)} hit(s), ${String(result.cache.misses)} miss(es))`)
+  }
   for (const project of projects) {
     console.error(`  src:      ${project.srcDir}\n  dist:     ${project.distDir}\n  outDir:   ${project.outDir}\n  files:    ${String(project.fileCount)}`)
   }
   for (const { from, to } of result.written) console.error(`  write   ${to}  (from ${from})`)
   for (const file of result.skipped) console.error(`  skipped ${file} (no JSDoc)`)
   for (const { file, issue } of result.issues) console.error(`  note    ${file}: ${issue}`)
-}
-
-/**
- * Reads the package version from package.json (present in the published package).
- * @returns The package version, or `0.0.0-unknown` when unreadable.
- */
-function readVersion(): string {
-  try {
-    const url = new URL('../package.json', import.meta.url)
-    // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-    const pkg = JSON.parse(readFileSync(url, 'utf8')) as { version?: string }
-    return typeof pkg.version === 'string' ? pkg.version : '0.0.0-unknown'
-  } catch {
-    return '0.0.0-unknown'
-  }
 }

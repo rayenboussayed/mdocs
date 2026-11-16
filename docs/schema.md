@@ -1,3 +1,29 @@
+## Members
+
+<dl>
+<dt><a href="#doclets">doclets</a></dt>
+<dd><p>Raw <code>jsdoc2md.getTemplateData()</code> output (tdata entries only).</p>
+</dd>
+<dt><a href="#fp">fp</a></dt>
+<dd><p>Content fingerprint the entry was computed from.</p>
+</dd>
+<dt><a href="#issues">issues</a></dt>
+<dd><p>Notes the fresh render produced (replayed on tier-1 hits). Always stored — possibly empty.</p>
+</dd>
+<dt><a href="#lastUsed">lastUsed</a></dt>
+<dd><p>Milliseconds since epoch of the last hit/store — drives LRU eviction.</p>
+</dd>
+<dt><a href="#markdown">markdown</a></dt>
+<dd><p>The finished markdown (md entries, non-skipped).</p>
+</dd>
+<dt><a href="#skipped">skipped</a></dt>
+<dd><p>The source file was intentionally not rendered (no JSDoc).</p>
+</dd>
+<dt><a href="#version">version</a></dt>
+<dd><p>Cache format version — bump on incompatible changes.</p>
+</dd>
+</dl>
+
 ## Constants
 
 <dl>
@@ -17,6 +43,18 @@
 <dt><a href="#mdocsConfigSchema">mdocsConfigSchema</a></dt>
 <dd><p>Validates <code>mdocs.config.*</code> content. Unknown keys are rejected (an
 unrecognized key is nearly always a typo&#39;d option).</p>
+</dd>
+<dt><a href="#cacheEntryKind">cacheEntryKind</a></dt>
+<dd><p>Kind discriminator of one cache entry.</p>
+</dd>
+<dt><a href="#cacheKeySchema">cacheKeySchema</a></dt>
+<dd><p>Cache keys are <code>&lt;kind&gt;:&lt;cwd-relative posix path&gt;</code>, e.g. <code>md:src/cli.ts</code>.</p>
+</dd>
+<dt><a href="#cacheEntrySchema">cacheEntrySchema</a></dt>
+<dd><p>One cache entry — either a finished render or raw jsdoc template data.</p>
+</dd>
+<dt><a href="#cacheFileSchema">cacheFileSchema</a></dt>
+<dd><p>One on-disk render cache (see <code>cache.js</code>).</p>
 </dd>
 </dl>
 
@@ -40,16 +78,76 @@ unrecognized key is nearly always a typo&#39;d option).</p>
 <dd><p>Validates the environment variables mdocs consumes. Never throws: unknown
 variables are ignored and invalid values fall back to safe defaults.</p>
 </dd>
+<dt><a href="#parseCacheFile">parseCacheFile(input)</a> ⇒ <code>{ entries: Record&lt;string, { fp: string; issues: string[]; kind: &quot;md&quot; | &quot;tdata&quot;; lastUsed: number; symbols: number; doclets?: Record&lt;string, unknown&gt;[]; markdown?: string; skipped?: &quot;no-jsdoc&quot;; }&gt;; version: 1; }</code></dt>
+<dd><p>Parses the on-disk cache. Never throws: a corrupt or outdated cache is a
+cache miss, not a failure — the run simply re-renders.</p>
+</dd>
 </dl>
 
+<a name="doclets"></a>
+
+## doclets
+Raw `jsdoc2md.getTemplateData()` output (tdata entries only).
+
+**Kind**: global variable  
+src: src/schema.ts:179  
+dist: dist/schema.js:143
+<a name="fp"></a>
+
+## fp
+Content fingerprint the entry was computed from.
+
+**Kind**: global variable  
+src: src/schema.ts:181  
+dist: dist/schema.js:145
+<a name="issues"></a>
+
+## issues
+Notes the fresh render produced (replayed on tier-1 hits). Always stored — possibly empty.
+
+**Kind**: global variable  
+src: src/schema.ts:183  
+dist: dist/schema.js:147
+<a name="lastUsed"></a>
+
+## lastUsed
+Milliseconds since epoch of the last hit/store — drives LRU eviction.
+
+**Kind**: global variable  
+src: src/schema.ts:186  
+dist: dist/schema.js:150
+<a name="markdown"></a>
+
+## markdown
+The finished markdown (md entries, non-skipped).
+
+**Kind**: global variable  
+src: src/schema.ts:188  
+dist: dist/schema.js:152
+<a name="skipped"></a>
+
+## skipped
+The source file was intentionally not rendered (no JSDoc).
+
+**Kind**: global variable  
+src: src/schema.ts:190  
+dist: dist/schema.js:154
+<a name="version"></a>
+
+## version
+Cache format version — bump on incompatible changes.
+
+**Kind**: global variable  
+src: src/schema.ts:212  
+dist: dist/schema.js:175
 <a name="ABSOLUTE_PATH"></a>
 
 ## ABSOLUTE\_PATH
 Matches POSIX absolute paths, Windows drive paths and UNC paths.
 
 **Kind**: global constant  
-src: src/schema.ts:25  
-dist: dist/schema.js:22
+src: src/schema.ts:24  
+dist: dist/schema.js:21
 <a name="DEFAULT_CONFIG"></a>
 
 ## DEFAULT\_CONFIG
@@ -57,24 +155,24 @@ Default values for every configuration key. Single source for the schema
 `.default()` arguments and the public `DEFAULT_CONFIG` export.
 
 **Kind**: global constant  
-src: src/schema.ts:44  
-dist: dist/schema.js:39
+src: src/schema.ts:43  
+dist: dist/schema.js:38
 <a name="relativeDirName"></a>
 
 ## relativeDirName
 Relative directory name allowed for `rootDistDir` / `outDirName` / `cachePath`.
 
 **Kind**: global constant  
-src: src/schema.ts:54  
-dist: dist/schema.js:48
+src: src/schema.ts:53  
+dist: dist/schema.js:47
 <a name="rootSrcDirEntry"></a>
 
 ## rootSrcDirEntry
 One src dir: a path or glob pattern (unexpanded here — resolved later).
 
 **Kind**: global constant  
-src: src/schema.ts:67  
-dist: dist/schema.js:57
+src: src/schema.ts:66  
+dist: dist/schema.js:56
 <a name="mdocsConfigSchema"></a>
 
 ## mdocsConfigSchema
@@ -82,8 +180,40 @@ Validates `mdocs.config.*` content. Unknown keys are rejected (an
 unrecognized key is nearly always a typo'd option).
 
 **Kind**: global constant  
-src: src/schema.ts:73  
-dist: dist/schema.js:62
+src: src/schema.ts:72  
+dist: dist/schema.js:61
+<a name="cacheEntryKind"></a>
+
+## cacheEntryKind
+Kind discriminator of one cache entry.
+
+**Kind**: global constant  
+src: src/schema.ts:170  
+dist: dist/schema.js:136
+<a name="cacheKeySchema"></a>
+
+## cacheKeySchema
+Cache keys are `<kind>:<cwd-relative posix path>`, e.g. `md:src/cli.ts`.
+
+**Kind**: global constant  
+src: src/schema.ts:173  
+dist: dist/schema.js:138
+<a name="cacheEntrySchema"></a>
+
+## cacheEntrySchema
+One cache entry — either a finished render or raw jsdoc template data.
+
+**Kind**: global constant  
+src: src/schema.ts:176  
+dist: dist/schema.js:140
+<a name="cacheFileSchema"></a>
+
+## cacheFileSchema
+One on-disk render cache (see `cache.js`).
+
+**Kind**: global constant  
+src: src/schema.ts:209  
+dist: dist/schema.js:172
 <a name="dirSegments"></a>
 
 ## dirSegments(value) ⇒ <code>string[]</code>
@@ -96,8 +226,8 @@ Splits a candidate relative dir name into its meaningful segments.
 | --- | --- | --- |
 | value | <code>string</code> | The candidate relative directory name. |
 
-src: src/schema.ts:36  
-dist: dist/schema.js:32
+src: src/schema.ts:35  
+dist: dist/schema.js:31
 <a name="parseMdocsConfig"></a>
 
 ## parseMdocsConfig(input) ⇒ <code>{ cache: boolean; cachePath: string; outDirName: string; parallelism: number \| boolean; rootDistDir: string; rootSrcDir: string \| string[]; }</code>
@@ -111,8 +241,8 @@ Parses `input` (config file content) into a validated object, throwing
 | --- | --- | --- |
 | input | <code>unknown</code> | The unvalidated config input. |
 
-src: src/schema.ts:99  
-dist: dist/schema.js:81
+src: src/schema.ts:98  
+dist: dist/schema.js:80
 <a name="envFlag"></a>
 
 ## envFlag(value) ⇒ <code>boolean</code>
@@ -125,8 +255,8 @@ Truthy interpretation for flag-style environment variables.
 | --- | --- | --- |
 | value | <code>string</code> | The raw env var value. |
 
-src: src/schema.ts:110  
-dist: dist/schema.js:92
+src: src/schema.ts:109  
+dist: dist/schema.js:91
 <a name="formatIssues"></a>
 
 ## formatIssues(error) ⇒ <code>string</code>
@@ -139,8 +269,8 @@ Flattens a ZodError into one `key: message` sentence per issue.
 | --- | --- | --- |
 | error | <code>z.ZodError&lt;unknown&gt;</code> | The ZodError whose issues are formatted. |
 
-src: src/schema.ts:123  
-dist: dist/schema.js:103
+src: src/schema.ts:122  
+dist: dist/schema.js:102
 <a name="parseProcessEnv"></a>
 
 ## parseProcessEnv(env) ⇒ <code>ProcessEnv</code>
@@ -154,5 +284,20 @@ variables are ignored and invalid values fall back to safe defaults.
 | --- | --- | --- |
 | env | <code>NodeJS.ProcessEnv</code> | The raw environment (missing keys fall back to defaults). |
 
-src: src/schema.ts:155  
-dist: dist/schema.js:123
+src: src/schema.ts:154  
+dist: dist/schema.js:122
+<a name="parseCacheFile"></a>
+
+## parseCacheFile(input) ⇒ <code>{ entries: Record&lt;string, { fp: string; issues: string[]; kind: &quot;md&quot; \| &quot;tdata&quot;; lastUsed: number; symbols: number; doclets?: Record&lt;string, unknown&gt;[]; markdown?: string; skipped?: &quot;no-jsdoc&quot;; }&gt;; version: 1; }</code>
+Parses the on-disk cache. Never throws: a corrupt or outdated cache is a
+cache miss, not a failure — the run simply re-renders.
+
+**Kind**: global function  
+**Returns**: <code>{ entries: Record&lt;string, { fp: string; issues: string[]; kind: &quot;md&quot; \| &quot;tdata&quot;; lastUsed: number; symbols: number; doclets?: Record&lt;string, unknown&gt;[]; markdown?: string; skipped?: &quot;no-jsdoc&quot;; }&gt;; version: 1; }</code> - The validated cache, or `null` when missing/corrupt/unsupported.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| input | <code>unknown</code> | The parsed JSON (unknown). |
+
+src: src/schema.ts:222  
+dist: dist/schema.js:183

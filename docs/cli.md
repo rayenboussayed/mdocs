@@ -16,9 +16,6 @@
 <dt><a href="#printVerbose">printVerbose(result)</a></dt>
 <dd><p>Prints resolved settings and per-file details (--verbose).</p>
 </dd>
-<dt><a href="#readVersion">readVersion()</a> ⇒ <code>string</code></dt>
-<dd><p>Reads the package version from package.json (present in the published package).</p>
-</dd>
 </dl>
 
 <a name="execute"></a>
@@ -34,8 +31,8 @@ Runs the pipeline and prints the summary. Returns the exit code.
 | roots | <code>string[]</code> | Positional `rootSrcDir` arguments from the CLI. |
 | options | <code>CliOptions</code> | Parsed CLI flags. |
 
-src: src/cli.ts:69  
-dist: dist/cli.js:48
+src: src/cli.ts:71  
+dist: dist/cli.js:49
 <a name="formatUnexpected"></a>
 
 ## formatUnexpected(error) ⇒ <code>string</code>
@@ -48,8 +45,8 @@ Formats an unexpected error, honoring MDOCS_DEBUG for stack traces.
 | --- | --- | --- |
 | error | <code>unknown</code> | The unexpected error to format. |
 
-src: src/cli.ts:107  
-dist: dist/cli.js:90
+src: src/cli.ts:110  
+dist: dist/cli.js:93
 <a name="parseParallelism"></a>
 
 ## parseParallelism(value) ⇒ <code>number \| boolean</code>
@@ -62,8 +59,8 @@ Parses `--parallelism` into true | false | integer. Range checks live in the con
 | --- | --- | --- |
 | value | <code>string</code> | The raw flag value. |
 
-src: src/cli.ts:118  
-dist: dist/cli.js:102
+src: src/cli.ts:121  
+dist: dist/cli.js:105
 <a name="printSummary"></a>
 
 ## printSummary(result, verbose)
@@ -76,8 +73,8 @@ Prints the one-line summary and the failures, if any.
 | result | <code>RunResult</code> | The run result to summarize. |
 | verbose | <code>boolean</code> | When set, already printed in `printVerbose`; controls the dry-run listing. |
 
-src: src/cli.ts:133  
-dist: dist/cli.js:118
+src: src/cli.ts:136  
+dist: dist/cli.js:121
 <a name="printVerbose"></a>
 
 ## printVerbose(result)
@@ -89,14 +86,5 @@ Prints resolved settings and per-file details (--verbose).
 | --- | --- | --- |
 | result | <code>RunResult</code> | The run result to print. |
 
-src: src/cli.ts:159  
-dist: dist/cli.js:147
-<a name="readVersion"></a>
-
-## readVersion() ⇒ <code>string</code>
-Reads the package version from package.json (present in the published package).
-
-**Kind**: global function  
-**Returns**: <code>string</code> - The package version, or `0.0.0-unknown` when unreadable.  
-src: src/cli.ts:174  
-dist: dist/cli.js:164
+src: src/cli.ts:162  
+dist: dist/cli.js:150

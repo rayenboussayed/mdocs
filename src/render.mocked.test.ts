@@ -222,6 +222,64 @@ test('a missing dist folder suppresses the dist line without touching the fs per
   }
 })
 
+test('a tier-2 cache hit skips the jsdoc child entirely', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  try {
+    await setup(dir, { 'x.js': 'export const x = 1\n' })
+    mocks.getTemplateData.mockImplementation(() => {
+      throw new Error('jsdoc must not run on a cache hit')
+    })
+    mocks.render.mockResolvedValue('rendered docs')
+    const stub = {
+      get: (key: string, fp: string) =>
+        key === 'tdata:x.js' && fp.length === 64
+          ? { doclets: [{ kind: 'function', meta: { lineno: 1 }, name: 'x' }], fp, kind: 'tdata' as const, lastUsed: 1 }
+          : undefined,
+      issues: [],
+      save: () => Promise.resolve(),
+      set: (): void => undefined,
+    }
+    const result = await renderSourceFile(
+      { file: sourceFile('x.js', '.js', dir), index: 0 },
+      { cache: stub, fingerprints: new Map([[join(dir, 'src', 'x.js'), { jsdocFp: 'a'.repeat(64), key: 'x.js', markdownFp: 'b'.repeat(64) }]]), outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
+    )
+    expect(result.symbols).toBe(1)
+    expect(result.markdown).toBe('rendered docs')
+  } finally {
+    await rm(dir, { force: true, recursive: true })
+  }
+})
+
+test('a tier-2 cache miss stores raw template data with scratch paths scrubbed', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
+  try {
+    await setup(dir, { 'x.js': 'export const x = 1\n' })
+    mocks.getTemplateData.mockResolvedValue([{ kind: 'function', meta: { filename: 'file.js', lineno: 1, path: '/scratch/0' }, name: 'x' }])
+    mocks.render.mockResolvedValue('rendered docs')
+    const stored: Array<{ doclets: Array<{ meta?: Record<string, unknown> }>; fp: string; kind: string }> = []
+    const stub = {
+      get: (): undefined => undefined,
+      issues: [],
+      save: () => Promise.resolve(),
+      set: (key: string, entry: { doclets: Array<{ meta?: Record<string, unknown> }>; fp: string; kind: string }): void => {
+        stored.push(entry)
+      },
+    }
+    const result = await renderSourceFile(
+      { file: sourceFile('x.js', '.js', dir), index: 0 },
+      { cache: stub, fingerprints: new Map([[join(dir, 'src', 'x.js'), { jsdocFp: 'a'.repeat(64), key: 'x.js', markdownFp: 'b'.repeat(64) }]]), outPath: join(dir, 'out.md'), partials: ['a', 'b'], pointerBase: dir, scratchDir: join(dir, 'scratch'), typeProgram: null },
+    )
+    expect(result.symbols).toBe(1)
+    expect(stored).toHaveLength(1)
+    const meta = stored[0]?.doclets[0]?.meta
+    expect(meta?.path).toBeUndefined()
+    expect(meta?.filename).toBeUndefined()
+    expect(meta?.lineno).toBe(1)
+  } finally {
+    await rm(dir, { force: true, recursive: true })
+  }
+})
+
 test('two doclets hitting the same "dist sourcemap missing" issue are deduped', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'mdocs-render-'))
   try {

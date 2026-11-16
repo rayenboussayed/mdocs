@@ -3,11 +3,10 @@
  * crosses a trust boundary:
  *
  * - `mdocsConfigSchema` validates `mdocs.config.*` (and inline config).
- * - `parseProcessEnv` validates the `process.env` variables mdocs
- *   reads (always — it never throws; env values are advisory).
+ * - `parseProcessEnv` validates the `process.env` variables mdocs reads.
+ * - `parseCacheFile` validates the on-disk render cache (`.mdocscache`).
  *
- * Everything else (jsdoc's doclet output, the content of the `.js` archives)
- * is internal/parsed data, not a validation target.
+ * Everything else (jsdoc's doclet output) is internal/parsed data, not a validation target.
  *
  * Error reporting is intentionally "fail with the most context we have": the
  * CLI surfaces `MdocsError` messages verbatim, so messages include the
@@ -161,4 +160,66 @@ export function parseProcessEnv(env: NodeJS.ProcessEnv = process.env): ProcessEn
     debug: debug.success && envFlag(debug.data),
     noColor: noColor.success && envFlag(noColor.data),
   }
+}
+
+// ---------------------------------------------------------------------------
+// cache schema
+// ---------------------------------------------------------------------------
+
+/** Kind discriminator of one cache entry. */
+const cacheEntryKind = z.enum(['md', 'tdata'])
+
+/** Cache keys are `<kind>:<cwd-relative posix path>`, e.g. `md:src/cli.ts`. */
+const cacheKeySchema = z.string().min(1).max(4096).regex(/^(md|tdata):[^\0]+$/, 'must be "<kind>:<path>"')
+
+/** One cache entry — either a finished render or raw jsdoc template data. */
+const cacheEntrySchema = z
+  .strictObject({
+    /** Raw `jsdoc2md.getTemplateData()` output (tdata entries only). */
+    doclets: z.array(z.record(z.string(), z.unknown())).max(10_000).optional(),
+    /** Content fingerprint the entry was computed from. */
+    fp: z.string().regex(/^[a-f0-9]{64}$/, 'must be a sha256 hex digest'),
+    /** Notes the fresh render produced (replayed on tier-1 hits). Always stored — possibly empty. */
+    issues: z.array(z.string().max(10_000)).max(1_000),
+    kind: cacheEntryKind,
+    /** Milliseconds since epoch of the last hit/store — drives LRU eviction. */
+    lastUsed: z.number().int().nonnegative(),
+    /** The finished markdown (md entries, non-skipped). */
+    markdown: z.string().max(2 * 1024 * 1024).optional(),
+    /** The source file was intentionally not rendered (no JSDoc). */
+    skipped: z.literal('no-jsdoc').optional(),
+    symbols: z.number().int().nonnegative(),
+  })
+  .superRefine((entry, ctx) => {
+    if (entry.kind === 'md') {
+      if (entry.skipped === undefined && entry.markdown === undefined) {
+        ctx.addIssue({ code: 'custom', message: 'md entries need markdown or skipped' })
+      }
+      if (entry.skipped !== undefined && entry.markdown !== undefined) {
+        ctx.addIssue({ code: 'custom', message: 'md entries carry either markdown or skipped, not both' })
+      }
+      return
+    }
+    if (entry.doclets === undefined) {
+      ctx.addIssue({ code: 'custom', message: 'tdata entries need doclets' })
+    }
+  })
+
+/** One on-disk render cache (see `cache.js`). */
+const cacheFileSchema = z.strictObject({
+  entries: z.record(cacheKeySchema, cacheEntrySchema),
+  /** Cache format version — bump on incompatible changes. */
+  version: z.literal(1),
+})
+export type CacheFile = z.output<typeof cacheFileSchema>
+
+/**
+ * Parses the on-disk cache. Never throws: a corrupt or outdated cache is a
+ * cache miss, not a failure — the run simply re-renders.
+ * @param input - The parsed JSON (unknown).
+ * @returns The validated cache, or `null` when missing/corrupt/unsupported.
+ */
+export function parseCacheFile(input: unknown): CacheFile | null {
+  const result = cacheFileSchema.safeParse(input)
+  return result.success ? result.data : null
 }

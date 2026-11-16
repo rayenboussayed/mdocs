@@ -8,3 +8,7 @@ dist/
 # eslint cache
 .eslintcache
 coverage/
+
+# mdocs render cache
+.mdocscache
+.mdocscache.tmp-*

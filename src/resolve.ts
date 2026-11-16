@@ -176,6 +176,46 @@ export async function resolveProjects(config: ResolvedMdocsConfig, cwd: string):
 }
 
 /**
+ * POSIX-style relative path (forward slashes).
+ * @param path - The path to normalize.
+ * @returns The path with forward slashes.
+ */
+export function toPosix(path: string): string {
+  return path.split(sep).join('/')
+}
+
+/**
+ * Recursively lists files under `dir`, never following directory symlinks.
+ * @param dir - The directory to walk.
+ * @param issues - Per-run notes accumulator (unreadable directories).
+ * @returns The absolute paths of the files found.
+ */
+export async function walkFiles(dir: string, issues: string[]): Promise<string[]> {
+  const out: string[] = []
+  const stack = [dir]
+  while (stack.length > 0) {
+    const current = stack.pop() as string
+    let dirents
+    try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
+      dirents = await readdir(current, { withFileTypes: true })
+    } catch (cause) {
+      // One unreadable directory must not abort the whole run — note and skip.
+      issues.push(`cannot read directory ${current}: ${errorMessage(cause)}`)
+      continue
+    }
+    for (const dirent of dirents) {
+      if (IGNORED_PATH_SEGMENTS.has(dirent.name) || dirent.name.startsWith('.')) continue
+      const full = join(current, dirent.name)
+      if (dirent.isDirectory()) stack.push(full)
+      else if (dirent.isFile()) out.push(full)
+      // symlinks (dirs) are deliberately not followed: avoids cycles
+    }
+  }
+  return out
+}
+
+/**
  * Fails the whole run when two files in one project would write the same
  * `.md` — that is a configuration problem, not a rendering failure.
  * @param files - The collected files to check for colliding outputs.
@@ -296,44 +336,4 @@ async function requireDirectory(path: string): Promise<string> {
   } catch {
     return resolve(path)
   }
-}
-
-/**
- * POSIX-style relative path (forward slashes).
- * @param path - The path to normalize.
- * @returns The path with forward slashes.
- */
-function toPosix(path: string): string {
-  return path.split(sep).join('/')
-}
-
-/**
- * Recursively lists files under `dir`, never following directory symlinks.
- * @param dir - The directory to walk.
- * @param issues - Per-run notes accumulator (unreadable directories).
- * @returns The absolute paths of the files found.
- */
-async function walkFiles(dir: string, issues: string[]): Promise<string[]> {
-  const out: string[] = []
-  const stack = [dir]
-  while (stack.length > 0) {
-    const current = stack.pop() as string
-    let dirents
-    try {
-      // eslint-disable-next-line security/detect-non-literal-fs-filename -- path from the validated config / workspace root; no untrusted path
-      dirents = await readdir(current, { withFileTypes: true })
-    } catch (cause) {
-      // One unreadable directory must not abort the whole run — note and skip.
-      issues.push(`cannot read directory ${current}: ${errorMessage(cause)}`)
-      continue
-    }
-    for (const dirent of dirents) {
-      if (IGNORED_PATH_SEGMENTS.has(dirent.name) || dirent.name.startsWith('.')) continue
-      const full = join(current, dirent.name)
-      if (dirent.isDirectory()) stack.push(full)
-      else if (dirent.isFile()) out.push(full)
-      // symlinks (dirs) are deliberately not followed: avoids cycles
-    }
-  }
-  return out
 }

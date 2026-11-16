@@ -33,6 +33,7 @@ import { readFile, stat, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import ts from 'typescript'
 
+import type { Cache, FileFingerprints } from './cache.js'
 import type { TypeProgram } from './tscheck.js'
 
 import { type DmdDoclet, injectCheckerTypes, injectPointers, normalizeDoclets, type SymbolPointer } from './doclet.js'
@@ -86,6 +87,8 @@ type PreparedFile =
  * Renders one source file into markdown (or reports why it could not).
  * @param job - The file to render and its pool index.
  * @param deps - Render-time dependencies (scratch dir, partials, output path, TS program, pointer base, jsdoc timeout).
+ * @param deps.cache - A loaded cache (absent ⇒ cache disabled).
+ * @param deps.fingerprints - The per-file cache fingerprints (absent ⇒ cache disabled).
  * @param deps.missingDistDirs - Absolute distDirs known to be missing/not-directories (probed once per project by the run); for those projects no `dist:` line is emitted.
  * @param deps.scratchDir - Per-file scratch directory for the transpiled/copied source.
  * @param deps.partials - The handlebars partial override files (dmd template).
@@ -98,6 +101,10 @@ type PreparedFile =
 export async function renderSourceFile(
   job: RenderFileJob,
   deps: {
+    /** A loaded cache (absent ⇒ cache disabled). */
+    cache?: Cache
+    /** Per-file cache fingerprints and tier keys, computed once per run. */
+    fingerprints?: ReadonlyMap<string, FileFingerprints>
     /** Absolute distDirs known to be missing/not-directories (probed once per project by the run). Absent ⇒ per-file probing. */
     missingDistDirs?: ReadonlySet<string>
     outPath: string
@@ -134,17 +141,7 @@ export async function renderSourceFile(
   const timeoutMs = deps.timeoutMs ?? 60_000
   let data: DmdDoclet[]
   try {
-    // One retry absorbs jsdoc's child exit-vs-close stdout race; a second failure
-    // propagates the original error. Never the default policy — it busy-waits via sleepSync.
-    const retryOnce = withRetryAsync(
-      () => jsdoc2md.getTemplateData({ files: [prepared.scratchFile], 'no-cache': true }),
-      // jutilities calls onError with retries starting at 0; throwing here rethrows the failing error.
-      { onError: ({ error, retries }) => { if (retries >= 1) throw error } },
-    )
-    // Timeout stays outermost — a hung jsdoc is never retried. The library rejects
-    // the no-signal wall-clock race with `signal?.reason` (undefined); remapped below.
-    const templateData = await withTimeoutAsync(retryOnce, { timeoutMs })()
-    data = normalizeDoclets(templateData as DmdDoclet[])
+    data = await fetchTemplateData(prepared.scratchFile, deps, file, timeoutMs)
   } catch (cause) {
     // A wall-clock timeout rejects with `undefined` when no signal is passed —
     // remap it to the per-file timeout error; anything else is jsdoc's own rejection.
@@ -241,6 +238,52 @@ async function computePointers(
     pointers.set(generatedLine, dist === undefined ? pointer : { dist, ...pointer })
   }
   return pointers
+}
+
+/**
+ * Fetches template data for one file, reusing the tier-2 cache when possible.
+ * A cache hit skips the jsdoc child process; everything else (normalize,
+ * pointer injection, checker types, render) still runs fresh.
+ * @param scratchFile - The transpiled/copied source inside the scratch dir.
+ * @param deps - The render deps (may carry a `cache` and per-file `fingerprints`).
+ * @param deps.cache - The loaded cache, or absent when caching is disabled.
+ * @param deps.fingerprints - The per-file fingerprints, or absent when caching is disabled.
+ * @param file - The source file being rendered.
+ * @param timeoutMs - The jsdoc render timeout in milliseconds.
+ * @returns The normalized doclets.
+ */
+async function fetchTemplateData(
+  scratchFile: string,
+  deps: { cache?: Cache; fingerprints?: ReadonlyMap<string, FileFingerprints> },
+  file: SourceFile,
+  timeoutMs: number,
+): Promise<DmdDoclet[]> {
+  // Tier-2 cache: raw template data skips the jsdoc child; everything else re-runs.
+  const fp = deps.fingerprints?.get(file.absPath)
+  const cached = fp !== undefined && deps.cache !== undefined ? deps.cache.get(`tdata:${fp.key}`, fp.jsdocFp) : undefined
+  if (cached?.doclets !== undefined) return normalizeDoclets(cached.doclets as DmdDoclet[])
+
+  // One retry absorbs jsdoc's child exit-vs-close stdout race; a second failure
+  // propagates the original error. Never the default policy — it busy-waits via sleepSync.
+  const retryOnce = withRetryAsync(
+    () => jsdoc2md.getTemplateData({ files: [scratchFile], 'no-cache': true }),
+    // jutilities calls onError with retries starting at 0; throwing here rethrows the failing error.
+    { onError: ({ error, retries }) => { if (retries >= 1) throw error } },
+  )
+  // Timeout stays outermost — a hung jsdoc is never retried.
+  const templateData = await withTimeoutAsync(retryOnce, { timeoutMs })() as DmdDoclet[]
+  if (fp !== undefined && deps.cache !== undefined) {
+    for (const doclet of templateData) {
+      // Scrub the writer run's scratch paths; `lineno` is the payload.
+      const meta = doclet.meta
+      if (meta !== undefined) {
+        delete meta.path
+        delete meta.filename
+      }
+    }
+    deps.cache.set(`tdata:${fp.key}`, { doclets: templateData, fp: fp.jsdocFp, issues: [], kind: 'tdata', symbols: 0 })
+  }
+  return normalizeDoclets(templateData)
 }
 
 /**
@@ -389,7 +432,7 @@ interface DistPointerContext {
  * @param file - The source file whose dist counterpart is wanted.
  * @returns The absolute path of the expected dist `.js` file.
  */
-function distJsPathFor(file: SourceFile): string {
+export function distJsPathFor(file: SourceFile): string {
   const withoutExt = file.relPath.replace(/\.[^.]+$/, '')
   const distExt = DIST_EXTENSION[file.extension] ?? file.extension.slice(1)
   return join(file.project.distDir, `${withoutExt}.${distExt}`)
