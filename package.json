@@ -17,6 +17,13 @@
   },
   "sideEffects": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayenboussayed/mdaics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rayenboussayed/mdaics/issues"
+  },
   "engines": {
     "node": ">=22.17"
   },

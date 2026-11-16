@@ -53,4 +53,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fresh checkouts pass the end-to-end suite: the fixture `dist/` outputs are
   committed (they were previously git-ignored).
 
-[1.0.0]: https://github.com/rayenboussayed/mdocs/releases/tag/v1.0.0
+[1.0.0]: https://github.com/rayenboussayed/mdaics/releases/tag/v1.0.0

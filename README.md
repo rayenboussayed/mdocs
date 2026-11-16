@@ -45,7 +45,7 @@ npm install --save-dev mdaics
 ```
 
 > **Release status:** the package is not published yet (`mdaics` is a free npm name).
-> Release is pending npm credentials and the LICENSE/repository decisions. Until then,
+> Release is pending npm credentials only. Until then,
 > run it from a checkout with `node dist/cli.js`, or `npm link` it.
 
 `mdaics` is a dev dependency — it only reads your source and writes markdown.
@@ -539,7 +539,7 @@ Release history: [CHANGELOG.md](CHANGELOG.md).
 Contributions are welcome. Please open an issue describing the problem or feature before starting on a large change, and keep pull requests focused — a change to the CLI surface, the config schema, or the output format should come with an update to this README.
 
 ```sh
-git clone <repository-url>   # repository URL pending the project's move to its public home
+git clone https://github.com/rayenboussayed/mdaics.git
 npm install
 npm run check                # typecheck, lint, knip, tests (coverage gate)
 ```
