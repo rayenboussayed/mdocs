@@ -66,4 +66,5 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
   a promise gate), `walkFiles` (dotfile/`node_modules` ignore rules, unreadable directories noted
   and skipped), `mapPool` (order-preserving, abort-on-first-throw).
 - `mdocs.config.js` is executable code run in-process (like vite's) — keep that trust model in mind for config-related changes; never add JSDoc_PATH-style relocations or network access.
+- Update `CHANGELOG.md` in the same change as any user-visible change (new flags/config/keys, output or pointer-format changes, dependency or Node-requirement changes). One `## [x.y.z] - YYYY-MM-DD` section per release (Keep a Changelog format); cut releases with `npm version`.
 - 100% coverage claims are only meaningful under `npm test` (build + run). Deleting `test/*.test.ts` stubs is blocked — they are excluded, not fixed.

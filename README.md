@@ -535,6 +535,8 @@ export class UserRepository {
 
 MIT © the mdocs contributors.
 
+Release history: [CHANGELOG.md](CHANGELOG.md).
+
 Contributions are welcome. Please open an issue describing the problem or feature before starting on a large change, and keep pull requests focused — a change to the CLI surface, the config schema, or the output format should come with an update to this README.
 
 ```sh
