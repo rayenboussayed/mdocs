@@ -56,6 +56,7 @@ ESM only (`"type": "module"`), Node.js ≥ 22.17. Trust executable sources
 ## Repo state / release gotchas
 
 - **Git repository; no CI.** Local `npm test` / `npm run check` is the only gate — do not claim anything is verified without running them. husky hooks are live (`pre-commit` = `npm run check`, `commit-msg` = commitlint); `prepare` uses `husky || true` so installs never fail outside git.
+- **Publishing is governed by `.npmignore`, not a `files` field** (deliberate design decision, see the commit that introduced it). Any root-level file added later **ships in the tarball** unless it is excluded in `.npmignore` — always verify with `npm pack --dry-run` after adding root-level files. `docs/`, `.mdocscache`, `coverage/`, `src/`, `test/` are all excluded on purpose; re-check they stay excluded.
 - The npm name `mdocs` is taken/deprecated/unclaimable; `mdocs-cli` was verified free but not yet decided. LICENSE says "the mdocs contributors". No `repository`/`bugs` in `package.json` yet. Name/LICENSE/repository decisions block publishing.
 - `typescript` is a **runtime** dependency (the TS checker is used on every run); `jutilities`
   is one too, imported via subpaths only (`jutilities/hof/*`, `jutilities/node/fs/dir`, `jutilities/to`),

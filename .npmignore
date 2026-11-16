@@ -1,0 +1,34 @@
+# mdocs publishes only what remains after these excludes:
+#   dist/**, README.md, LICENSE, package.json, CHANGELOG.md
+#   (plus npm's always-included main/bin entry points).
+# NOTE: there is deliberately no `files` field in package.json — this file is
+# the only publish control. Any root-level file added later ships unless it is
+# excluded here. Verify with `npm pack --dry-run`.
+
+coverage/
+docs/
+src/
+test/
+tools/
+scripts/
+.husky/
+
+# build & tooling configs
+tsconfig.json
+tsconfig.test.json
+vitest.config.ts
+eslint.config.js
+knip.json
+commitlint.config.js
+mdocs.config.js
+
+# repo bookkeeping
+AGENTS.md
+.gitignore
+.eslintcache
+
+# mdocs build artifacts (never publish)
+.mdocscache
+.mdocscache.tmp-*
+*.tgz
+*.tsbuildinfo
